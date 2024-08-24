@@ -4,3 +4,4 @@ export {
 	default as default,
 	default as paginateAll
 } from "./paginateAll.js";
+export {default as computeTargets} from "./computeTargets.js";

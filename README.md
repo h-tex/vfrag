@@ -61,6 +61,16 @@ import { paginate, paginateAll } from "node_modules/vfrag/src/index.js";
 paginateAll({ sections: ".section", aspectRatio: 210/297 /* A4 */ });
 ```
 
+To also add a `data-target-page` attribute to all local links (for TOC generation, cross-references etc):
+
+```js
+import vfrag, { computeTargets } from "node_modules/vfrag/src/index.js";
+paginateAll(/* … */).then(computeTargets);
+```
+
+You can optionally specify a `root` element for `computeTargets()`, but it’s not worth it for performance,
+as it’s a pretty fast operation (processing ~2K links takes about 7 ms on my 2021 MBP).
+
 ## Configuration
 
 You can also optionally specify options as a second argument of any main function (`paginate()`, `paginateAll()`, `consumeUntil()`).
