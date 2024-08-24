@@ -1,0 +1,20 @@
+{
+  "name": "vfrag",
+  "version": "0.0.1",
+  "description": "Paginate a document by breaking one or more containers vertically into multiple fragments. ",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "paginate",
+    "paged",
+    "print",
+    "fragmentation"
+  ],
+  "author": "Lea Verou",
+  "license": "MIT",
+  "devDependencies": {
+    "release-it": "^17.6.0"
+  }
+}

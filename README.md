@@ -1,7 +1,7 @@
 # Paginate
 
 Paginate a document by breaking one or more containers vertically into multiple fragments.
-This is a bare-bones roll-your-own alternative to [Paged.js](https://pagedjs.org/).
+This is a bare-bones DIY alternative to [Paged.js](https://pagedjs.org/).
 
 [Paged.js](https://pagedjs.org/) is an impressive piece of work, but it did not work for our use cases:
 - It does some light parsing on the CSS file, which means it can be thrown by more modern CSS that it doesn't understand (e.g. [range media queries](https://gitlab.coko.foundation/pagedjs/pagedjs/-/issues/460)).
