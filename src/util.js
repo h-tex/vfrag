@@ -53,3 +53,37 @@ export function getStyle (arg, {pageBreak = true, lh = true, page} = {}) {
 
 	return style;
 }
+
+/**
+ * Binary search for the maximum valid offset within a text node
+ */
+export function findMaxOffset(node, range, target_content_height) {
+	let low = 0;
+	let high = node.textContent.length;
+	let bestOffset = 0;
+
+	while (low <= high) {
+		const mid = Math.floor((low + high) / 2);
+
+		// Extend the original range temporarily to the midpoint of the text node
+		range.setEnd(node, mid);
+		const height = range.getBoundingClientRect().height;
+
+		if (height === target_content_height) {
+			bestOffset = mid;
+			break;
+		}
+		else if (height < target_content_height) {
+			bestOffset = mid;
+			low = mid + 1;
+		}
+		else {
+			high = mid - 1;
+		}
+	}
+
+	// Reset the range to its previous end point
+	range.setEnd(node, 0);
+
+	return bestOffset;
+}

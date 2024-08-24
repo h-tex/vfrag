@@ -1,9 +1,11 @@
 import * as util from "./util.js";
 import consumeUntil from "./consumeUntil.js";
+import fragmentElement from "./fragmentElement.js";
 const MAX_PAGES = 300;
 
 // Paginate by breaking down .page into multiple .page elements
-export default function paginate (container, {startAt = 0, aspectRatio = 8.5/11} = {}) {
+export default function paginate (container, options = {}) {
+	let {startAt = 1, aspectRatio = 8.5/11} = options;
 	let timeStart = performance.now();
 	let w = container.offsetWidth;
 	let style = util.getStyle(container, {page: true, pageBreak: false});
@@ -11,7 +13,8 @@ export default function paginate (container, {startAt = 0, aspectRatio = 8.5/11}
 	let min_page_height = Math.ceil(util.getOuterHeight(style.min_height, style));
 	let target_page_height = w / aspectRatio;
 	let target_content_height = util.getInnerHeight(target_page_height, style);
-	let h, page = startAt;
+	let h;
+	let page = startAt;
 
 	for (; (w / (h = container.offsetHeight)) <= aspectRatio && h > min_page_height; page++) {
 		// Add nodes to the nodes array until the page is full
@@ -24,18 +27,15 @@ export default function paginate (container, {startAt = 0, aspectRatio = 8.5/11}
 		}
 
 		if (nodes.length > 0) {
-			let newPage = container.cloneNode();
-			newPage.classList.add("fragment");
-			newPage.id = "page-" + (page + 1);
-			newPage.dataset.page = page + 1;
+			let newPage = fragmentElement(container, nodes, {type: "page"});
+			newPage.id = "page-" + page;
 
 			let pageNumber = Object.assign(document.createElement("a"), {
 				href: "#" + newPage.id,
 				className: "page-number",
-				textContent: page + 1,
+				textContent: page,
 			});
 
-			newPage.append(...nodes);
 			container.before(newPage);
 			let range = document.createRange();
 			range.selectNodeContents(newPage);
@@ -46,7 +46,7 @@ export default function paginate (container, {startAt = 0, aspectRatio = 8.5/11}
 			let empty_content_height = target_content_height - page_content_height;
 			let lines = empty_content_height / style.lh;
 
-			if (lines > 1) {
+			if (lines > 1 && options.debug) {
 				let placeholder = Object.assign(document.createElement("div"), {
 					className: "placeholder",
 					style: `height: ${empty_content_height}px; --lines: ${ lines };`,
@@ -67,10 +67,17 @@ export default function paginate (container, {startAt = 0, aspectRatio = 8.5/11}
 		}
 	}
 
-	container.id = "page-" + (page + 1);
+	container.id = "page-" + page;
 
-	return {
-		pages: page + 1 - startAt,
+	let info = {
+		pages: page - startAt,
 		time: performance.now() - timeStart,
 	};
+
+	if (options.totals) {
+		options.totals.pages += info.pages;
+		options.totals.time += info.time;
+	}
+
+	return info;
 }
