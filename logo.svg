@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 480">
+<!-- Based on the Font Awesome file icon -->
+<!-- <rect width="100%" height="100%" fill="yellow" /> -->
+<style>
+path {
+	fill: oklch(.6 .14 200);
+}
+rect {
+	fill: none;
+	stroke: oklch(.7 .2 125);
+	mix-blend-mode: multiply;
+}
+</style>
+<path d="
+M 0, 64 c 0, -35.3, 28.7, -64, 64, -64
+	h 165.5 c 17, 0, 33.3, 6.7, 45.3, 18.7 l 90.5, 90.5 c 12, 12, 18.7, 28.3, 18.7, 45.3
+	v 40 c 0, 35.3, -28.7, 64, -64, 64
+	h -256 c -35.3, 0, -64, -28.7, -64, -64 Z
+M 320, 210 c 8.8 0 16-7.2 16 -16
+	v -34
+	h -80 c -17.7 0 -32 -14.3 -32 -32 v -80 h -160 c -8.8 0-16 7.2 -16 16
+	v 130 c 0 8.8 7.2 16 16 16 Z
+" />
+<rect x="24" y="304" rx="40" stroke-width="48" width="336" height="150" />
+</svg>
