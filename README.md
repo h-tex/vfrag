@@ -29,11 +29,10 @@ This means it does not attempt to polyfill any Paged Media spec.
 Instead of unsupported CSS syntax that needs to be parsed,
 it uses class names, CSS variables, standard (supported) CSS properties and rules, and the CSS OM.
 4. **Screen media remains screen media.**
-This only handles one thing: breaking a container into enough vertical fragments with a given aspect ratio.
-That’s it.
 Rendering print styles on screen is a non-goal.
 Any differences that affect pagination should be handled via CSS selectors (`.paginated *`).
-and `page-break-*` or `break-*` CSS properties should be specified on screen media as well (there is no reason to limit them to `print`).
+and `page-break-*` or `break-*` CSS properties should be specified on screen media as well
+(they have no effect so there is no reason to scope them to `print`).
 5. **Static**
 This is a static view, intended to create a paged view that can be printed shortly after it is generated.
 Updating the pagination if the content changes is a non-goal.
@@ -48,12 +47,18 @@ import vfrag from "node_modules/vfrag/src/index.js";
 vfrag(".section");
 ```
 
+Or with a named argument, which also allows you to specify options:
+
+```js
+vfrag({ sections: ".section", aspectRatio: 210/297 /* A4 */ });
+```
+
 Named imports are also available (the default export is the same as `paginateAll()`):
 
 ```js
 import { paginate, paginateAll } from "node_modules/vfrag/src/index.js";
 
-paginateAll(".section", { aspectRatio: 210/297 /* A4 */ });
+paginateAll({ sections: ".section", aspectRatio: 210/297 /* A4 */ });
 ```
 
 ## Configuration
@@ -101,6 +106,8 @@ The available options are:
 ## Future plans
 
 - [ ] Shift certain nodes (e.g. `<figure>`) later to minimize empty space at the bottom of pages.
+- [ ] Method to join fragments back together.
+- [ ] Method to repaginate specific pages
 
 ## Fragmentation Algorithm
 

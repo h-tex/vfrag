@@ -1,6 +1,5 @@
 import paginate from "./paginate.js";
 
-let supportsViewTransitions = Boolean(document.startViewTransition);
 /**
  * @typedef {Object} PaginationStats
  * @property {number} pages - Number of pages
@@ -25,20 +24,16 @@ export default function paginateAll (options = {}) {
 	sections = typeof sections === "string" ? root.querySelectorAll(sections) : sections;
 
 	options.totals ??= {pages: 0, time: 0};
-	let doneArr = [];
-	let done;
-
+	// options.sync ??= true;
 	root.classList.add("paginated");
 
+	let done;
 	for (let section of sections) {
-		options.startAt = options.totals.pages + 1;
-
-		if (options.sync || !supportsViewTransitions) {
+		if (options.sync) {
 			paginate(section, options);
 		}
 		else {
-			doneArr.push(document.startViewTransition(() => paginate(section, options)).finished);
-			done ??= Promise.all(doneArr);
+			done = (done ?? Promise.resolve()).then(() => paginate(section, options));
 		}
 	}
 
