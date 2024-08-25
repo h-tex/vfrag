@@ -98,7 +98,7 @@ export function getId (id, {page, fragment}) {
 
 export function formatDuration (ms) {
 	if (ms < 1000) {
-		return Math.round(ms) + " ms";
+		return (ms < 1 ? +ms.toPrecision(2) : Math.round(ms)) + " ms";
 	}
 
 	let seconds = ms / 1000;
