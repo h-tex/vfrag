@@ -91,28 +91,27 @@ function makePaginator (container, options) {
 					return;
 				}
 			}
+
+			container.id = util.getId(container.id, {page: info.pages, fragment: container.fragments.length });
+			container.dataset.page = info.pages;
+
+			if (options.totals) {
+				options.totals.pages += info.pages;
+				options.totals.time += info.time;
+			}
 		})(),
-		info: info,
+		info,
 	};
 }
 
 // Paginate by breaking down .page into multiple .page elements
 export default function paginate (container, options = {}) {
 	let {info, paginator} = makePaginator(container, options);
-	let doneCallback = () => {
-		container.id = "page-" + info.pages;
 
-		if (options.totals) {
-			options.totals.pages += info.pages;
-			options.totals.time += info.time;
-		}
-
-		return info;
-	};
 
 	if (options.sync || !supportsViewTransitions) {
 		for (let page of paginator);
-		return doneCallback();
+		return info;
 	}
 	else {
 		return (async () => {
@@ -120,7 +119,7 @@ export default function paginate (container, options = {}) {
 			while (!done) {
 				await document.startViewTransition(() => done = paginator.next().done).finished;
 			}
-			return doneCallback();
+			return info;
 		})();
 	}
 }
