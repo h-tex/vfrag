@@ -12,7 +12,7 @@ const fixup = {
 	}
 }
 
-export default function fragmentElement (original, nodes, {type = "fragment"} = {}) {
+export default function fragmentElement (original, nodes) {
 	let fragment = original.cloneNode(false);
 	fragment.append(...nodes);
 
@@ -23,8 +23,8 @@ export default function fragmentElement (original, nodes, {type = "fragment"} = 
 
 	// Add styling/script hooks
 	fragment.classList.add("fragment")
-	fragment.dataset[type] = original.fragments.length;
-	original.dataset[type] = original.fragments.length + 1;
+	fragment.dataset.fragment = original.fragments.length;
+	original.dataset.fragment = original.fragments.length + 1;
 
 	// TODO prevent duplicate ids
 
