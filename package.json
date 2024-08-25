@@ -15,6 +15,10 @@
   ],
   "author": "Lea Verou",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/h-tex/vfrag.git"
+  },
   "devDependencies": {
     "release-it": "^17.6.0"
   }
