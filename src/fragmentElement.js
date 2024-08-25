@@ -1,3 +1,17 @@
+const fixup = {
+	ol (original, fragment, nodes) {
+		// Continue <ol> from same number
+		let start = original.start || 1;
+		original.start = start + nodes.length;
+	},
+
+	details (original, fragment, nodes) {
+		// Clone <summary> if exists, or create one (so it can be hidden)
+		let summary = original.querySelector(":scope > summary")?.cloneNode(true) ?? document.createElement("summary");
+		fragment.prepend(summary);
+	}
+}
+
 export default function fragmentElement (original, nodes, {type = "fragment"} = {}) {
 	let fragment = original.cloneNode(false);
 	fragment.append(...nodes);
@@ -15,14 +29,10 @@ export default function fragmentElement (original, nodes, {type = "fragment"} = 
 	// TODO prevent duplicate ids
 
 	// Special handling for certain elements
-	if (fragment.matches("ol")) {
-		// Continue <ol> from same number
-		let start = original.start || 1;
-		original.start = start + nodes.length;
-	}
-	else if (fragment.matches("details")) {
-		// Open <details> elements
-		fragment.prepend(original.querySelector("summary").cloneNode(true));
+	for (let selector in fixup) {
+		if (fragment.matches(selector)) {
+			fixup[selector](original, fragment, nodes);
+		}
 	}
 
 	return fragment;
