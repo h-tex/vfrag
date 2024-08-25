@@ -86,6 +86,15 @@ export function findMaxOffset(node, range, target_content_height) {
 	range.setEnd(node, 0);
 
 	return bestOffset;
+}
+
+export function getId (id, {page, fragment}) {
+	if (fragment === 1) {
+		return id;
+	}
+
+	return id + "-" + fragment;
+}
 
 export function formatDuration (ms) {
 	if (ms < 1000) {

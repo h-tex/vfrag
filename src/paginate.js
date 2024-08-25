@@ -20,9 +20,10 @@ function makePaginator (container, options) {
 		let timeStart = performance.now();
 		info.pages++;
 
-		newPage.id = "page-" + page;
 		let newPage = fragmentElement(container, nodes);
+		let fragment = container.fragments.length;
 		newPage.dataset.page = page;
+		newPage.id = util.getId(id, {page, fragment});
 
 		let pageNumber = Object.assign(document.createElement("a"), {
 			href: "#" + newPage.id,
