@@ -115,9 +115,9 @@ The available options are:
 
 ## Future plans
 
-- [ ] Shift certain nodes (e.g. `<figure>`) later to minimize empty space at the bottom of pages.
-- [ ] Method to join fragments back together.
-- [ ] Method to repaginate specific pages
+- [ ] [Shift certain nodes (e.g. `<figure>`) later to minimize empty space at the bottom of pages](https://github.com/h-tex/vfrag/issues/2)
+- [ ] [Method to join fragments back together](https://github.com/h-tex/vfrag/issues/8)
+- [ ] [Method to repaginate specific pages](https://github.com/h-tex/vfrag/issues/9)
 
 ## Fragmentation Algorithm
 
