@@ -69,7 +69,7 @@ paginateAll(/* … */).then(computeTargets);
 ```
 
 You can optionally specify a `root` element for `computeTargets()`, but it’s not worth it for performance,
-as it’s a pretty fast operation (processing ~2K links takes about 7 ms on my 2021 MBP).
+as it’s a pretty fast operation (processing ~2K links takes about 16 ms on my 2021 MBP).
 
 ## Configuration
 

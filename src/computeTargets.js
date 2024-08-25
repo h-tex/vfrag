@@ -8,8 +8,10 @@ export default function computeTargets (root = document.documentElement) {
 	for (let a of links) {
 		// Why not querySelector? So we don’t get errors for invalid selectors
 		let target = document.getElementById(a.hash.slice(1));
-		if (target && target.matches("[data-page]")) {
-			a.dataset.targetPage = target.dataset.page;
+
+		if (target) {
+			let targetPage = target.closest("[data-page]");
+			a.dataset.targetPage = targetPage.dataset.page;
 		}
 	}
 
