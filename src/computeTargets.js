@@ -1,3 +1,5 @@
+import * as util from "./util.js";
+
 export default function computeTargets (root = document.documentElement) {
 	let info = {};
 	let start = performance.now();
@@ -13,6 +15,6 @@ export default function computeTargets (root = document.documentElement) {
 
 	info.time = performance.now() - start;
 	info.links = links.length;
-	console.info(`Computed target pages for ${ info.links } links in ${ Math.round(info.time) } ms`);
+	console.info(`Computed target pages for ${ info.links } links in ${ util.formatDuration(info.time) }`);
 	return info;
 }

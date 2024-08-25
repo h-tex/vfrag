@@ -86,4 +86,17 @@ export function findMaxOffset(node, range, target_content_height) {
 	range.setEnd(node, 0);
 
 	return bestOffset;
+
+export function formatDuration (ms) {
+	if (ms < 1000) {
+		return Math.round(ms) + " ms";
+	}
+
+	let seconds = ms / 1000;
+	if (seconds < 60) {
+		return +seconds.toFixed(1) + " s";
+	}
+
+	let minutes = seconds / 60;
+	return +minutes.toFixed(1) + " min";
 }

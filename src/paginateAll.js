@@ -1,4 +1,5 @@
 import paginate from "./paginate.js";
+import * as util from "./util.js";
 
 /**
  * @typedef {Object} PaginationStats
@@ -40,7 +41,7 @@ export default function paginateAll (options = {}) {
 	let doneCallback = () => {
 		root.style.setProperty("--page-count", options.totals.pages);
 		root.style.setProperty("--pages", `"${options.totals.pages}"`);
-		console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ Math.round(options.totals.time) } ms`);
+		console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ util.formatDuration(options.totals.time) }`);
 		return options.totals;
 	};
 
