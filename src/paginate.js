@@ -7,7 +7,8 @@ const supportsViewTransitions = Boolean(document.startViewTransition);
 
 
 function makePaginator (container, options) {
-	let {startAt = (+options.totals?.pages || 0) + 1, aspectRatio = 8.5/11} = options;
+	options.totals ??= {pages: 0, time: 0};
+	let {startAt = options.totals.pages + 1, aspectRatio = 8.5/11} = options;
 	let w = container.offsetWidth;
 	let id = container.id;
 	let style = util.getStyle(container, {page: true, pageBreak: false});
@@ -51,6 +52,9 @@ function makePaginator (container, options) {
 	function fragmentPage (nodes) {
 		let timeStart = performance.now();
 		info.pages++;
+		options.totals.pages++;
+		options.root.style.setProperty("--page-count", options.totals.pages);
+		options.root.style.setProperty("--pages", `"${options.totals.pages}"`);
 
 		let newPage = fragmentElement(container, nodes);
 		let fragment = container.fragments.length;
@@ -101,10 +105,7 @@ function makePaginator (container, options) {
 
 			decoratePage(container, {number: page, fragment: container.fragments?.length ?? 1});
 
-			if (options.totals) {
-				options.totals.pages += info.pages;
-				options.totals.time += info.time;
-			}
+			options.totals.time += info.time;
 		})(),
 		info,
 	};

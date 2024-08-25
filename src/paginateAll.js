@@ -20,13 +20,13 @@ export default function paginateAll (options = {}) {
 	if (typeof options === "string") {
 		options = {sections: options};
 	}
-	let root = options.root ?? document.documentElement;
+	options.root ??= document.documentElement;
+	options.root.classList.add("paginated");
 	let sections = options.sections ?? ".page";
-	sections = typeof sections === "string" ? root.querySelectorAll(sections) : sections;
+	sections = typeof sections === "string" ? options.root.querySelectorAll(sections) : sections;
 
 	options.totals ??= {pages: 0, time: 0};
 	// options.sync ??= true;
-	root.classList.add("paginated");
 
 	let done;
 	for (let section of sections) {
@@ -39,8 +39,6 @@ export default function paginateAll (options = {}) {
 	}
 
 	let doneCallback = () => {
-		root.style.setProperty("--page-count", options.totals.pages);
-		root.style.setProperty("--pages", `"${options.totals.pages}"`);
 		console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ util.formatDuration(options.totals.time) }`);
 		return options.totals;
 	};
