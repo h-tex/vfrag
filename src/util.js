@@ -93,6 +93,7 @@ export function getId (id, {page, fragment}) {
 		return id;
 	}
 
+	// TODO check if unique?
 	return id + "-" + fragment;
 }
 

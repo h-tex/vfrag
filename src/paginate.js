@@ -4,6 +4,8 @@ import fragmentElement from "./fragmentElement.js";
 const MAX_PAGES = 300;
 const supportsViewTransitions = Boolean(document.startViewTransition);
 
+
+
 function makePaginator (container, options) {
 	let {startAt = (+options.totals?.pages || 0) + 1, aspectRatio = 8.5/11} = options;
 	let w = container.offsetWidth;
@@ -16,27 +18,22 @@ function makePaginator (container, options) {
 	let page = startAt;
 	let info = {pages: 1, time: 0};
 
-	function fragmentPage (nodes) {
-		let timeStart = performance.now();
-		info.pages++;
-
-		let newPage = fragmentElement(container, nodes);
-		let fragment = container.fragments.length;
-		newPage.dataset.page = page;
-		newPage.id = util.getId(id, {page, fragment});
+	function decoratePage (page, {number, fragment}) {
+		page.id = util.getId(id, {number, fragment});
+		page.dataset.page = number;
 
 		let pageNumber = Object.assign(document.createElement("a"), {
-			href: "#" + newPage.id,
+			href: "#" + page.id,
 			className: "page-number",
-			textContent: page,
+			textContent: number,
 		});
 
-		container.before(newPage);
+		container.before(page);
 		let range = document.createRange();
-		range.selectNodeContents(newPage);
+		range.selectNodeContents(page);
 
 		let page_content_height = range.getBoundingClientRect().height;
-		newPage.append(pageNumber);
+		page.append(pageNumber);
 
 		let empty_content_height = target_content_height - page_content_height;
 		let lines = empty_content_height / style.lh;
@@ -47,8 +44,18 @@ function makePaginator (container, options) {
 				style: `height: ${empty_content_height}px; --lines: ${ lines };`,
 				textContent: `Empty space: ${lines} lines`,
 			});
-			newPage.append(placeholder);
+			page.append(placeholder);
 		}
+	}
+
+	function fragmentPage (nodes) {
+		let timeStart = performance.now();
+		info.pages++;
+
+		let newPage = fragmentElement(container, nodes);
+		let fragment = container.fragments.length;
+		decoratePage(newPage, {number: page, fragment});
+
 		info.time += performance.now() - timeStart;
 	}
 
@@ -92,8 +99,7 @@ function makePaginator (container, options) {
 				}
 			}
 
-			container.id = util.getId(container.id, {page: info.pages, fragment: container.fragments.length });
-			container.dataset.page = info.pages;
+			decoratePage(container, {number: page, fragment: container.fragments?.length ?? 1});
 
 			if (options.totals) {
 				options.totals.pages += info.pages;

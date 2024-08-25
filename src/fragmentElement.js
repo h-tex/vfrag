@@ -18,7 +18,13 @@ export default function fragmentElement (original, nodes) {
 
 	// Keep track
 	fragment.fragmentedFrom = original;
-	original.fragments ??= [];
+
+	if (!original.fragments) {
+		// This is the first fragment
+		original.fragments = [];
+		original.classList.add("source");
+	}
+
 	original.fragments.push(fragment);
 
 	// Add styling/script hooks
