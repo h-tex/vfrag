@@ -19,7 +19,7 @@ function makePaginator (container, options) {
 	let page = startAt;
 	let info = {pages: 1, time: 0};
 
-	function decoratePage (page, {number, fragment}) {
+	function decoratePage (page, {number, fragment, isLast}) {
 		page.id = util.getId(id, {number, fragment});
 		page.dataset.page = number;
 
@@ -39,7 +39,7 @@ function makePaginator (container, options) {
 		let empty_content_height = target_content_height - page_content_height;
 		let lines = empty_content_height / style.lh;
 
-		if (lines > 1 && options.debug) {
+		if (lines > 1 && options.debug && !isLast) {
 			let placeholder = Object.assign(document.createElement("div"), {
 				className: "placeholder",
 				style: `height: ${empty_content_height}px; --lines: ${ lines };`,
@@ -103,7 +103,11 @@ function makePaginator (container, options) {
 				}
 			}
 
-			decoratePage(container, {number: page, fragment: container.fragments?.length ?? 1});
+			decoratePage(container, {
+				number: page,
+				fragment: container.fragments?.length ?? 1,
+				isLast: true,
+			});
 
 			options.totals.time += info.time;
 		})(),
