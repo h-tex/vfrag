@@ -90,6 +90,7 @@ The available options are:
 |--------|------|---------|-------------|
 | `aspectRatio` | `number` | `8.5/11` | Aspect ratio of the pages. This will be used to determine the target height (width will be unaffected). |
 | `startAt` | `number` | `1` | The index of the first page to start at. |
+| `animation` | `boolean` | `true` | If true, will use a transition to display new pages. Note that this makes the overall pagination time a lot higher. |
 
 ### `consumeUntil()` and `paginate()` and `paginateAll()`
 

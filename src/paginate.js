@@ -119,8 +119,7 @@ function makePaginator (container, options) {
 export default function paginate (container, options = {}) {
 	let {info, paginator} = makePaginator(container, options);
 
-
-	if (options.sync || !supportsViewTransitions) {
+	if (options.sync) {
 		for (let page of paginator);
 		return info;
 	}
@@ -128,7 +127,13 @@ export default function paginate (container, options = {}) {
 		return (async () => {
 			let done = false;
 			while (!done) {
-				await document.startViewTransition(() => done = paginator.next().done).finished;
+				if (options.animation === false || !supportsViewTransitions) {
+					await util.nextFrame();
+					done = paginator.next().done;
+				}
+				else {
+					await document.startViewTransition(() => done = paginator.next().done).finished;
+				}
 			}
 			return info;
 		})();

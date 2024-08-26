@@ -110,3 +110,7 @@ export function formatDuration (ms) {
 	let minutes = seconds / 60;
 	return +minutes.toFixed(1) + " min";
 }
+
+export function nextFrame () {
+	return new Promise(requestAnimationFrame);
+}
