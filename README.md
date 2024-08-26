@@ -1,4 +1,4 @@
-<h1><img src="logo.svg" style="width: 1em"> vfrag</h1>
+<h1><img src="logo.svg" style="width: 100px"> vfrag</h1>
 
 Paginate a document by breaking one or more containers vertically into multiple fragments.
 This is a bare-bones DIY alternative to [Paged.js](https://pagedjs.org/).
@@ -6,7 +6,7 @@ This is a bare-bones DIY alternative to [Paged.js](https://pagedjs.org/).
 [Paged.js](https://pagedjs.org/) is an impressive piece of work, but it did not work for our use cases:
 - It does some light parsing on the CSS file, which means it can be thrown by more modern CSS that it doesn't understand (e.g. [range media queries](https://gitlab.coko.foundation/pagedjs/pagedjs/-/issues/460)).
 It also makes it more heavyweight, as it has to refetch all CSS files.
-- It recreates every DOM node, which means it can be slow and have side effects (e.g. [dropping declarative shadow roots](https://gitlab.coko.foundation/pagedjs/pagedjs/-/issues/463).
+- It recreates every DOM node, which means it can be slow and have side effects (e.g. [dropping declarative shadow roots](https://gitlab.coko.foundation/pagedjs/pagedjs/-/issues/463)).
 - Because it has to handle the general case, it is also a very complicated piece of work,
 and in the end I realized we had spent more time adding workarounds to our codebase to handle its quirks than I spent writing this.
 
@@ -24,7 +24,7 @@ Avoiding too much DOM I/O also means it’s less likely to break content it did 
 2. **Do not handle the general case.**
 Instead but makes several assumptions about the structure and layout of the document (see below),
 as well as how fragmentation should be handled.
-3. **No CSS parsin.**
+3. **No CSS parsing.**
 This means it does not attempt to polyfill any Paged Media spec.
 Instead of unsupported CSS syntax that needs to be parsed,
 it uses class names, CSS variables, standard (supported) CSS properties and rules, and the CSS OM.
