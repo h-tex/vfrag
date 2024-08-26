@@ -25,23 +25,30 @@ export default function paginateAll (options = {}) {
 	let sections = options.sections ?? ".page";
 	sections = typeof sections === "string" ? options.root.querySelectorAll(sections) : sections;
 
-	options.totals ??= {pages: 0, time: 0};
+	options.totals ??= {pages: 0, time: 0, asyncTime: 0};
+	let startTime = performance.now();
 	// options.sync ??= true;
 
-	let done;
-	for (let section of sections) {
-		if (options.sync) {
-			paginate(section, options);
+	let paginator = (function* () {
+		for (let section of sections) {
+			let result = paginate(section, options);
+			yield result;
 		}
-		else {
-			done = (done ?? Promise.resolve()).then(() => paginate(section, options));
-		}
-	}
 
-	let doneCallback = () => {
-		console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ util.formatDuration(options.totals.time) }`);
+		let total = performance.now() - startTime;
+		console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ util.formatDuration(options.totals.time) } (total: ${ util.formatDuration(total) })`);
+	})();
+
+	if (options.sync) {
+		for (let sectionResult of paginator);
 		return options.totals;
-	};
-
-	return options.sync ? doneCallback() : done.then(doneCallback);
+	}
+	else {
+		return (async () => {
+			for (let sectionResult of paginator) {
+				await sectionResult;
+			}
+			return options.totals;
+		})();
+	}
 }
