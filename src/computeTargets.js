@@ -3,7 +3,7 @@ import * as util from "./util.js";
 export default function computeTargets (root = document.documentElement) {
 	let info = {};
 	let start = performance.now();
-	let links = root.querySelectorAll("a[href^='#'].page-number");
+	let links = root.querySelectorAll("a[href^='#']:where(:not(.page-number), .page-number:not(.page > *))");
 
 	for (let a of links) {
 		// Why not querySelector? So we don’t get errors for invalid selectors
