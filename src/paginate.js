@@ -109,6 +109,10 @@ function makePaginator (container, options) {
 				isLast: true,
 			});
 
+			info.pages++;
+			options.totals.pages++;
+			options.root.style.setProperty("--page-count", options.totals.pages);
+			options.root.style.setProperty("--pages", `"${options.totals.pages}"`);
 			options.totals.time += info.time;
 		})(),
 		info,
