@@ -6,7 +6,7 @@ const supportsViewTransitions = Boolean(document.startViewTransition);
 
 
 function makePaginator (container, options) {
-	options.totals ??= {pages: 0, time: 0};
+	options.totals ??= {pages: 0, time: 0, empty_lines: []};
 	let {startAt = options.totals.pages + 1, aspectRatio = 8.5/11} = options;
 	let w = container.offsetWidth;
 	let id = container.id;
@@ -16,7 +16,7 @@ function makePaginator (container, options) {
 	let target_content_height = util.getInnerHeight(target_page_height, style);
 	let h;
 	let page = startAt;
-	let info = {pages: 1, time: 0};
+	let info = {pages: 1, time: 0, empty_lines: []};
 
 	/**
 	 * Add page number, and empty content
@@ -54,6 +54,7 @@ function makePaginator (container, options) {
 
 		let empty_content_height = target_content_height - page_content_height;
 		let empty_lines = empty_content_height / style.lh;
+		info.empty_lines.push(empty_lines);
 		page.style.setProperty("--empty-lines", empty_lines);
 		page.style.setProperty("--empty-lines-text", `"${ empty_lines.toLocaleString() } empty lines"`);
 
@@ -122,6 +123,7 @@ function makePaginator (container, options) {
 			});
 
 			options.totals.time += info.time;
+			options.totals.empty_lines.push(util.average(info.empty_lines));
 		})(),
 		info,
 	};

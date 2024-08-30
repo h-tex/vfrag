@@ -25,7 +25,7 @@ export default function paginateAll (options = {}) {
 	let sections = options.sections ?? ".page";
 	sections = typeof sections === "string" ? options.root.querySelectorAll(sections) : sections;
 
-	options.totals ??= {pages: 0, time: 0, asyncTime: 0};
+	options.totals ??= {pages: 0, time: 0, asyncTime: 0, empty_lines: []};
 	let startTime = performance.now();
 	// options.sync ??= true;
 
@@ -36,7 +36,8 @@ export default function paginateAll (options = {}) {
 		}
 
 		let total = performance.now() - startTime;
-		console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ util.formatDuration(options.totals.time) } (total: ${ util.formatDuration(total) })`);
+		console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ util.formatDuration(options.totals.time) } (total: ${ util.formatDuration(total) }).`
+		+ ` Empty lines: ${ util.average(options.totals.empty_lines).toLocaleString() } avg, ${ Math.max(...options.totals.empty_lines).toLocaleString() } max.`);
 		options.root.classList.remove("paginating");
 		options.root.classList.add("done");
 	})();
