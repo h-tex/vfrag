@@ -52,7 +52,7 @@ function makePaginator (container, options) {
 		let page_content_height = util.getHeight(range);
 		page.append(pageNumber);
 
-		let empty_content_height = target_content_height - page_content_height;
+		let empty_content_height = Math.max(0, target_content_height - page_content_height);
 		let empty_lines = empty_content_height / style.lh;
 		info.empty_lines.push(empty_lines);
 		page.style.setProperty("--empty-lines", empty_lines);
@@ -123,7 +123,7 @@ function makePaginator (container, options) {
 			});
 
 			options.totals.time += info.time;
-			options.totals.empty_lines.push(util.average(info.empty_lines));
+			options.totals.empty_lines.push(...info.empty_lines);
 		})(),
 		info,
 	};
