@@ -156,7 +156,7 @@ export default function consumeUntil (target_content_height, container, options)
 					let child_lines = child_height / lh;
 
 					if (child_lines >= 4) {
-						let children = [...consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child)];
+						let children = [...consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options)];
 						// console.log(child, empty_lines, child_lines, children);
 
 						if (children.length > 0) {
