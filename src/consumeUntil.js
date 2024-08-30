@@ -2,7 +2,7 @@ import * as util from "./util.js";
 import fragmentElement from "./fragmentElement.js";
 
 export const DEFAULT_FRAGMENTAINABLES = "ol, ul, dl, div, p, details, section";
-export const DEFAULT_MOVABLES = "figure:not(.immovable)";
+export const DEFAULT_SHIFTABLES = "figure:not(.immovable)";
 
 function isBlank (node) {
 	return node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "";
@@ -22,7 +22,7 @@ function isNotBlank (node) {
  */
 export default function consumeUntil (target_content_height, container, options) {
 	let fragmentainables = options?.fragmentainables || DEFAULT_FRAGMENTAINABLES;
-	let movables = options?.movables || DEFAULT_MOVABLES;
+	let shiftables = options?.shiftables || DEFAULT_SHIFTABLES;
 
 	const nodes = [];
 	const range = document.createRange();
@@ -37,6 +37,9 @@ export default function consumeUntil (target_content_height, container, options)
 
 	// these shouldn't trigger anything by themselves, but should be taken along for the ride if a node after them gets moved
 	let maybeNodes = [];
+
+	// Element being shifted down
+	let shiftable;
 
 	function takeNode (child, style = last_node_style) {
 		// Empty maybeNodes into nodes, then push child
@@ -68,16 +71,16 @@ export default function consumeUntil (target_content_height, container, options)
 		let previous_current_height = current_height;
 		current_height = util.getHeight(range, {force: true});
 		remaining_height = target_content_height - current_height;
-		let ret = remaining_height >= 0;
 
-		if (remaining_height < 0) {
-			// Adding this child node would exceed the target height, abort mission!
-			range.setEndBefore(child);
-			current_height = previous_current_height;
-			remaining_height = target_content_height - current_height;
+		if (remaining_height >= 0) {
+			return true;
 		}
 
-		return ret;
+		// Adding this child node would exceed the target height, abort mission!
+		range.setEndBefore(child);
+		current_height = previous_current_height;
+		remaining_height = target_content_height - current_height;
+		return false;
 	}
 
 	for (let i = 0; i < container.childNodes.length; i++) {
@@ -90,6 +93,14 @@ export default function consumeUntil (target_content_height, container, options)
 		else if (isBlank(child)) {
 			maybeNodes.push(child);
 			continue; // Skip empty text nodes
+		}
+
+		if (shiftable) {
+			// We’re shifting a node down to make space, should we stop?
+			if (child.matches("h1, h2, h3, h4, h5, h6, " + shiftables)) {
+				// No more shifting
+				break;
+			}
 		}
 
 		let style = util.getStyle(child);
@@ -125,28 +136,12 @@ export default function consumeUntil (target_content_height, container, options)
 					takeNode(child);
 				}
 			}
-			else if (child.matches(movables)) {
+			else if (child.matches(shiftables)) {
 				// What if we shift it down?
-				let nextSibling = child.nextSibling;
+				shiftable = child;
+				child._nextSibling = child.nextSibling;
 				child.remove();
-				let siblings = consumeUntil(remaining_height, container, options);
-
-				// Drop anything from any headings or other movables onwards
-				let hIndex = siblings.findIndex(node => node.matches?.("h1, h2, h3, h4, h5, h6, " + movables));
-				if (hIndex > -1) {
-					siblings = siblings.slice(0, hIndex);
-				}
-
-				if (siblings.filter(isNotBlank).length > 0) {
-					// There are elements to move!
-					takeNodes(siblings);
-					siblings.at(-1).after(child);
-					console.log("moved", child, "down", siblings);
-				}
-				else {
-					// Nice try but nope, restore the child
-					nextSibling.before(child);
-				}
+				continue;
 			}
 			else if (child.matches(fragmentainables)) {
 				let empty_lines = remaining_height / lh;
@@ -178,6 +173,17 @@ export default function consumeUntil (target_content_height, container, options)
 		if (remaining_height < 1) {
 			// We've reached the target height, no need to process further
 			break;
+		}
+	}
+
+	if (shiftable) {
+		// Restore the shiftable node
+		let lastNode = nodes.at(-1);
+		if (lastNode) {
+			lastNode.after(shiftable);
+		}
+		else {
+			shiftable._nextSibling.before(shiftable);
 		}
 	}
 
