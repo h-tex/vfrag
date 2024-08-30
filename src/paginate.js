@@ -139,7 +139,7 @@ export default function paginate (container, options = {}) {
 		return (async () => {
 			let done = false;
 			while (!done) {
-				if (options.animation === false || !supportsViewTransitions) {
+				if (!options.animation || !supportsViewTransitions) {
 					await util.nextFrame();
 					done = paginator.next().done;
 				}
