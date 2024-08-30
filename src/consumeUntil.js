@@ -31,7 +31,7 @@ export default function consumeUntil (target_content_height, container, options)
 
 	let container_style = util.getStyle(container, {pageBreak: false});
 	let last_node_style;
-	let current_height  = 0;
+	let current_height = 0;
 	let remaining_height = target_content_height;
 	let lh = container_style.lh;
 
@@ -51,7 +51,7 @@ export default function consumeUntil (target_content_height, container, options)
 	}
 
 	function takeNodes (children, style = last_node_style) {
-		// Empty maybeNodes into nodes, then push child
+		// Empty maybeNodes into nodes, then push children
 		nodes.push(...maybeNodes.splice(0, maybeNodes.length), ...children);
 		let last = children[children.length - 1];
 		if (last.parentNode) {
@@ -68,7 +68,7 @@ export default function consumeUntil (target_content_height, container, options)
 		let previous_current_height = current_height;
 		current_height = util.getHeight(range, {force: true});
 		remaining_height = target_content_height - current_height;
-		let ret = remaining_height > 0;
+		let ret = remaining_height >= 0;
 
 		if (remaining_height < 0) {
 			// Adding this child node would exceed the target height, abort mission!
@@ -125,29 +125,29 @@ export default function consumeUntil (target_content_height, container, options)
 					takeNode(child);
 				}
 			}
-			// else if (child.matches(movables)) {
-			// 	// What if we shift it down?
-			// 	let nextSibling = child.nextSibling;
-			// 	child.remove();
-			// 	let siblings = consumeUntil(remaining_height, container);
+			else if (child.matches(movables)) {
+				// What if we shift it down?
+				let nextSibling = child.nextSibling;
+				child.remove();
+				let siblings = consumeUntil(remaining_height, container, options);
 
-			// 	// Drop anything from any headings or other movables onwards
-			// 	let hIndex = siblings.findIndex(node => node.matches?.("h1, h2, h3, h4, h5, h6, " + movables));
-			// 	if (hIndex > -1) {
-			// 		siblings = siblings.slice(0, hIndex);
-			// 	}
+				// Drop anything from any headings or other movables onwards
+				let hIndex = siblings.findIndex(node => node.matches?.("h1, h2, h3, h4, h5, h6, " + movables));
+				if (hIndex > -1) {
+					siblings = siblings.slice(0, hIndex);
+				}
 
-			// 	if (siblings.filter(isNotBlank).length > 0) {
-			// 		// There are elements to move!
-			// 		takeNodes(siblings);
-			// 		siblings.at(-1).after(child);
-			// 		console.log("moved", child, "down", siblings);
-			// 	}
-			// 	else {
-			// 		// Nice try but nope, restore the child
-			// 		nextSibling.before(child);
-			// 	}
-			// }
+				if (siblings.filter(isNotBlank).length > 0) {
+					// There are elements to move!
+					takeNodes(siblings);
+					siblings.at(-1).after(child);
+					console.log("moved", child, "down", siblings);
+				}
+				else {
+					// Nice try but nope, restore the child
+					nextSibling.before(child);
+				}
+			}
 			else if (child.matches(fragmentainables)) {
 				let empty_lines = remaining_height / lh;
 
@@ -156,7 +156,7 @@ export default function consumeUntil (target_content_height, container, options)
 					let child_lines = child_height / lh;
 
 					if (child_lines >= 4) {
-						let children = [...consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child)];
+						let children = [...consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options)];
 						// console.log(child, empty_lines, child_lines, children);
 
 						if (children.length > 0) {
