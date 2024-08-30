@@ -31,7 +31,7 @@ export default function consumeUntil (target_content_height, container, options)
 
 	let container_style = util.getStyle(container, {pageBreak: false});
 	let last_node_style;
-	let current_height  = 0;
+	let current_height = 0;
 	let remaining_height = target_content_height;
 	let lh = container_style.lh;
 
@@ -51,7 +51,7 @@ export default function consumeUntil (target_content_height, container, options)
 	}
 
 	function takeNodes (children, style = last_node_style) {
-		// Empty maybeNodes into nodes, then push child
+		// Empty maybeNodes into nodes, then push children
 		nodes.push(...maybeNodes.splice(0, maybeNodes.length), ...children);
 		let last = children[children.length - 1];
 		if (last.parentNode) {
