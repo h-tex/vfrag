@@ -68,7 +68,7 @@ export default function consumeUntil (target_content_height, container, options)
 		let previous_current_height = current_height;
 		current_height = util.getHeight(range, {force: true});
 		remaining_height = target_content_height - current_height;
-		let ret = remaining_height > 0;
+		let ret = remaining_height >= 0;
 
 		if (remaining_height < 0) {
 			// Adding this child node would exceed the target height, abort mission!
