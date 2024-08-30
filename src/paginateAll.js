@@ -21,7 +21,7 @@ export default function paginateAll (options = {}) {
 		options = {sections: options};
 	}
 	options.root ??= document.documentElement;
-	options.root.classList.add("paginated");
+	options.root.classList.add("paginated", "paginating");
 	let sections = options.sections ?? ".page";
 	sections = typeof sections === "string" ? options.root.querySelectorAll(sections) : sections;
 
@@ -37,6 +37,8 @@ export default function paginateAll (options = {}) {
 
 		let total = performance.now() - startTime;
 		console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ util.formatDuration(options.totals.time) } (total: ${ util.formatDuration(total) })`);
+		options.root.classList.remove("paginating");
+		options.root.classList.add("done");
 	})();
 
 	if (options.sync) {

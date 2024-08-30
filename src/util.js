@@ -17,13 +17,22 @@ export function getInnerHeight (outerHeight, style) {
 	}
 }
 
-export function getStyle (arg, {pageBreak = true, lh = true, page} = {}) {
-	if (!arg || arg instanceof Node && arg.nodeType !== 1) {
+const styles = new WeakMap();
+export function getStyle (node, {pageBreak = true, lh = true, page} = {}) {
+	if (!node || node instanceof Node && node.nodeType !== 1) {
 		return null;
 	}
 
-	let style = {};
-	let cs = arg instanceof CSSStyleDeclaration ? arg : getComputedStyle(arg);
+	let style = styles.get(node);
+
+	if (style) {
+		return style;
+	}
+
+	style = {};
+	let cs = node instanceof CSSStyleDeclaration ? node : getComputedStyle(node);
+
+	style.position = cs.getPropertyValue("position");
 
 	// NOTE Does not handle complicated values, just single keywords.
 	if (pageBreak) {
@@ -51,6 +60,7 @@ export function getStyle (arg, {pageBreak = true, lh = true, page} = {}) {
 		style.min_height = parseFloat(cs.getPropertyValue("min-height")) || 0;
 	}
 
+	styles.set(node, style);
 	return style;
 }
 
@@ -67,7 +77,7 @@ export function findMaxOffset(node, range, target_content_height) {
 
 		// Extend the original range temporarily to the midpoint of the text node
 		range.setEnd(node, mid);
-		const height = range.getBoundingClientRect().height;
+		const height = getHeight(range);
 
 		if (height === target_content_height) {
 			bestOffset = mid;
@@ -113,4 +123,20 @@ export function formatDuration (ms) {
 
 export function nextFrame () {
 	return new Promise(requestAnimationFrame);
+}
+
+const heights = new WeakMap();
+/**
+ * Get an element or range’s bounding rect height and cache it
+ * @param {Element | Range} element
+ */
+export function getHeight (element, options) {
+	let height = heights.get(element);
+
+	if ((height === undefined || options?.force) && element.getBoundingClientRect) {
+		height = element.getBoundingClientRect().height;
+		heights.set(element, height);
+	}
+
+	return height;
 }

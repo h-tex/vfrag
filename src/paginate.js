@@ -5,7 +5,6 @@ const MAX_PAGES = 300;
 const supportsViewTransitions = Boolean(document.startViewTransition);
 
 
-
 function makePaginator (container, options) {
 	options.totals ??= {pages: 0, time: 0};
 	let {startAt = options.totals.pages + 1, aspectRatio = 8.5/11} = options;
@@ -19,8 +18,22 @@ function makePaginator (container, options) {
 	let page = startAt;
 	let info = {pages: 1, time: 0};
 
-	function decoratePage (page, {number, fragment, isLast}) {
+	/**
+	 * Add page number, and empty content
+	 * @param {*} page
+	 * @param {*} param1
+	 */
+	function pageFinished (page, {number, fragment, isLast}) {
+		// Update page stats
+		info.pages++;
+		options.totals.pages++;
+		options.root.style.setProperty("--page-count", options.totals.pages);
+		options.root.style.setProperty("--pages", `"${options.totals.pages}"`);
+
+		// Make a new id (the old one will be duplicate)
 		page.id = util.getId(id, {number, fragment});
+
+		// Add page number
 		page.dataset.page = number;
 
 		let pageNumber = Object.assign(document.createElement("a"), {
@@ -29,38 +42,37 @@ function makePaginator (container, options) {
 			textContent: number,
 		});
 
+		// Insert new page before source
 		container.before(page);
+
+		// Calculate empty space
 		let range = document.createRange();
 		range.selectNodeContents(page);
 
-		let page_content_height = range.getBoundingClientRect().height;
+		let page_content_height = util.getHeight(range);
 		page.append(pageNumber);
 
 		let empty_content_height = target_content_height - page_content_height;
-		let lines = empty_content_height / style.lh;
+		let empty_lines = empty_content_height / style.lh;
+		page.style.setProperty("--empty-lines", empty_lines);
+		page.style.setProperty("--empty-lines-text", `"${ empty_lines.toLocaleString() } empty lines"`);
 
-		if (lines > 1 && options.debug && !isLast) {
-			let placeholder = Object.assign(document.createElement("div"), {
-				className: "placeholder",
-				style: `height: ${empty_content_height}px; --lines: ${ lines };`,
-				textContent: `Empty space: ${lines} lines`,
-			});
-			page.append(placeholder);
+		if (empty_lines > 2.5 && !isLast) {
+			page.classList.add("empty-space-" + (empty_lines > 6 ? "l" : "m"));
 		}
+
+		page.classList.add("pagination-done");
 	}
 
 	function fragmentPage (nodes) {
 		let timeStart = performance.now();
-		info.pages++;
-		options.totals.pages++;
-		options.root.style.setProperty("--page-count", options.totals.pages);
-		options.root.style.setProperty("--pages", `"${options.totals.pages}"`);
 
 		let newPage = fragmentElement(container, nodes);
 		let fragment = container.fragments.length;
-		decoratePage(newPage, {number: page, fragment});
-
-		info.time += performance.now() - timeStart;
+		pageFinished(newPage, {number: page, fragment});
+		let pageTime = performance.now() - timeStart;
+		// console.log("Done: Page", page, "took", util.formatDuration(pageTime));
+		info.time += pageTime;
 	}
 
 	return {
@@ -78,7 +90,7 @@ function makePaginator (container, options) {
 					for (let child of container.childNodes) {
 						nodes.push(child);
 
-						if (child.getBoundingClientRect?.().height > target_content_height) {
+						if (util.getHeight(child) > target_content_height) {
 							console.warn("Overly large element that can't be split", child);
 							break;
 						}
@@ -103,16 +115,12 @@ function makePaginator (container, options) {
 				}
 			}
 
-			decoratePage(container, {
+			pageFinished(container, {
 				number: page,
 				fragment: container.fragments?.length ?? 1,
 				isLast: true,
 			});
 
-			info.pages++;
-			options.totals.pages++;
-			options.root.style.setProperty("--page-count", options.totals.pages);
-			options.root.style.setProperty("--pages", `"${options.totals.pages}"`);
 			options.totals.time += info.time;
 		})(),
 		info,

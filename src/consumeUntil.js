@@ -2,6 +2,15 @@ import * as util from "./util.js";
 import fragmentElement from "./fragmentElement.js";
 
 export const DEFAULT_FRAGMENTAINABLES = "ol, ul, dl, div, p, details, section";
+export const DEFAULT_MOVABLES = "figure:not(.immovable)";
+
+function isBlank (node) {
+	return node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "";
+}
+
+function isNotBlank (node) {
+	return !isBlank(node);
+}
 
 /**
  * Return an array of child nodes (or parts thereof) that fit within the target height.
@@ -20,77 +29,109 @@ export default function consumeUntil (target_content_height, container, options)
 
 	let container_style = util.getStyle(container, {pageBreak: false});
 	let last_node_style;
+	let current_height  = 0;
+	let remaining_height = target_content_height;
+	let lh = container_style.lh;
+
+	// these shouldn't trigger anything by themselves, but should be taken along for the ride if a node after them gets moved
+	let maybeNodes = [];
+
+	function takeNode (child, style = last_node_style) {
+		// Empty maybeNodes into nodes, then push child
+		nodes.push(...maybeNodes.splice(0, maybeNodes.length), child);
+		if (child.parentNode) {
+			range.setEndAfter(child);
+		}
+
+		if (style?.break_after === "always") {
+			return false;
+		}
+	}
 
 	for (let i = 0; i < container.childNodes.length; i++) {
 		let child = container.childNodes[i];
 
 		if (child.nodeType === Node.COMMENT_NODE) {
+			maybeNodes.push(child);
 			continue; // Skip comment nodes
 		}
+		else if (isBlank(child)) {
+			maybeNodes.push(child);
+			continue; // Skip empty text nodes
+		}
+
+		let style = util.getStyle(child);
+		last_node_style = style ?? last_node_style;
+
+		if (style) {
+			if (i > 0 && style.break_before === "always") {
+				range.setEndBefore(child);
+				break;
+			}
+			if (style.break_after === "avoid"
+				|| ["absolute", "fixed"].includes(style.position)
+			) {
+				maybeNodes.push(child);
+				continue;
+			}
+		}
+
 
 		// Attempt to include the whole child node
 		range.setEndAfter(child);
-		const currentHeight = range.getBoundingClientRect().height;
+		let previous_current_height = current_height;
+		current_height = util.getHeight(range, {force: true});
+		remaining_height = target_content_height - current_height;
 
-		if (currentHeight > target_content_height) {
-			// Adding this child node would exceed the target height
+		if (remaining_height < 0) {
+			// Adding this child node would exceed the target height, abort mission!
 			range.setEndBefore(child);
+			current_height = previous_current_height;
+			remaining_height = target_content_height - current_height;
 
+			// Can we fragment it?
 			if (child.nodeType === Node.TEXT_NODE) {
 				// Handle text nodes: find the maximum offset that fits within the target height
 				const maxOffset = util.findMaxOffset(child, range, target_content_height);
 				if (maxOffset > 0) {
 					child.splitText(maxOffset);
-					nodes.push(child); // Include the fitting portion of the text node
-					range.setEndAfter(child);
+					takeNode(child);
 				}
 			}
 			else if (child.matches(fragmentainables)) {
-				let content_height = range.getBoundingClientRect().height;
-				let empty_content_height = target_content_height - content_height;
-				let empty_lines = empty_content_height / container_style.lh;
-				let style = util.getStyle(child);
+				let empty_lines = remaining_height / lh;
 
 				if (empty_lines > 2 && style.break_inside !== "avoid") {
-					let chid_height = child.getBoundingClientRect().height;
-					let child_lines = chid_height / style.lh;
+					let child_height = util.getHeight(child, {force: true});
+					let child_lines = child_height / lh;
 
 					if (child_lines >= 4) {
-						let children = consumeUntil(empty_content_height, child);
+						let children = [...consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child)];
+						// console.log(child, empty_lines, child_lines, children);
 
 						if (children.length > 0) {
-							let fragment = fragmentElement(child, children);
+							let remaining = [...child.childNodes].slice(children.length);
 
-							nodes.push(fragment);
-							last_node_style = null;
+							if (children.filter(isNotBlank).length > 0 && remaining.filter(isNotBlank).length > 0) {
+								let fragment = fragmentElement(child, children);
+								last_node_style = null;
+								takeNode(fragment);
+							}
 						}
 					}
-
 				}
 			}
+
+			break;
 		}
 		// Include the whole node if it fits or exactly matches the height
-		else if (child.nodeType === Node.TEXT_NODE) {
-			nodes.push(child);
-		}
 		else {
-			let style = util.getStyle(child);
-
-			if (style.break_before === "always") {
-				range.setEndBefore(child);
-				break;
-			}
-
-			nodes.push(child);
-			last_node_style = style ?? last_node_style;
-
-			if (style?.break_after === "always") {
-				break;
-			}
+			takeNode(child);
 		}
 
-		if (currentHeight >= target_content_height) {
-			break; // Stop processing as we've reached the exact height limit
+		if (remaining_height < 1) {
+			// We've reached the target height, no need to process further
+			break;
 		}
 	}
 
