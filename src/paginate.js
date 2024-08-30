@@ -96,7 +96,7 @@ function makePaginator (container, options) {
 						nodes.push(child);
 
 						if (util.getHeight(child) > target_content_height) {
-							console.warn("Overly large element that can't be split", child);
+							console.warn("Overly large element that can't be split:", child, `(${util.getHeight(child)} > ${target_content_height})`);
 							break;
 						}
 					}

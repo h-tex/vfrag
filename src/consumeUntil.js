@@ -75,6 +75,8 @@ export default function consumeUntil (target_content_height, container, options)
 	for (let i = 0; i < container.childNodes.length; i++) {
 		let child = container.childNodes[i];
 
+
+
 		if (child.nodeType === Node.COMMENT_NODE) {
 			maybeNodes.push(child);
 			continue; // Skip comment nodes
@@ -107,10 +109,19 @@ export default function consumeUntil (target_content_height, container, options)
 				continue;
 			}
 		}
-
+		let fits = fitsWhole(child);
+		// if (child?.id === "fig-todo") console.log(i, nodes, maybeNodes, fits);
 		// Attempt to include the whole child node
-		if (fitsWhole(child)) {
+		let isFragmentable = child.matches?.(fragmentables);
+		if (fits || nodes.length === 0 && style && !isFragmentable) {
+			// Either fits or this is a very large item that won't fit anywhere
 			takeNode(child);
+
+			if (!fits) {
+				// This is a very large item that won't fit anywhere, don’t try to fit anything else
+				console.warn("Overly large element:", child, `(${util.getHeight(child)} > ${target_content_height})`);
+				break;
+			}
 		}
 		else {
 			// Not enough space to add this whole
@@ -140,14 +151,14 @@ export default function consumeUntil (target_content_height, container, options)
 				child.remove();
 				continue;
 			}
-			else if (child.matches(fragmentables)) {
+			else if (isFragmentable) {
 				let empty_lines = remaining_height / lh;
 
-				if (empty_lines > 2 && style.break_inside !== "avoid") {
+				if (empty_lines >= 2 && style.break_inside !== "avoid") {
 					let child_height = util.getHeight(child, {force: true});
 					let child_lines = child_height / lh;
 
-					if (child_lines >= 4) {
+					if (child_lines >= 3.99) {
 						child.normalize();
 						let children = [...consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options)];
 
