@@ -22,6 +22,8 @@ function isNotBlank (node) {
  */
 export default function consumeUntil (target_content_height, container, options) {
 	let fragmentainables = options?.fragmentainables || DEFAULT_FRAGMENTAINABLES;
+	let movables = options?.movables || DEFAULT_MOVABLES;
+
 	const nodes = [];
 	const range = document.createRange();
 	range.setStart(container, 0);
@@ -46,6 +48,36 @@ export default function consumeUntil (target_content_height, container, options)
 		if (style?.break_after === "always") {
 			return false;
 		}
+	}
+
+	function takeNodes (children, style = last_node_style) {
+		// Empty maybeNodes into nodes, then push child
+		nodes.push(...maybeNodes.splice(0, maybeNodes.length), ...children);
+		let last = children[children.length - 1];
+		if (last.parentNode) {
+			range.setEndAfter(last);
+		}
+
+		if (style?.break_after === "always") {
+			return false;
+		}
+	}
+
+	function fitsWhole (child) {
+		range.setEndAfter(child);
+		let previous_current_height = current_height;
+		current_height = util.getHeight(range, {force: true});
+		remaining_height = target_content_height - current_height;
+		let ret = remaining_height > 0;
+
+		if (remaining_height < 0) {
+			// Adding this child node would exceed the target height, abort mission!
+			range.setEndBefore(child);
+			current_height = previous_current_height;
+			remaining_height = target_content_height - current_height;
+		}
+
+		return ret;
 	}
 
 	for (let i = 0; i < container.childNodes.length; i++) {
@@ -76,28 +108,46 @@ export default function consumeUntil (target_content_height, container, options)
 			}
 		}
 
-
 		// Attempt to include the whole child node
-		range.setEndAfter(child);
-		let previous_current_height = current_height;
-		current_height = util.getHeight(range, {force: true});
-		remaining_height = target_content_height - current_height;
-
-		if (remaining_height < 0) {
-			// Adding this child node would exceed the target height, abort mission!
-			range.setEndBefore(child);
-			current_height = previous_current_height;
-			remaining_height = target_content_height - current_height;
+		if (fitsWhole(child)) {
+			takeNode(child);
+		}
+		else {
+			// Not enough space to add this whole
 
 			// Can we fragment it?
 			if (child.nodeType === Node.TEXT_NODE) {
 				// Handle text nodes: find the maximum offset that fits within the target height
 				const maxOffset = util.findMaxOffset(child, range, target_content_height);
+				// TODO adjust so we're not breaking words halfway
 				if (maxOffset > 0) {
 					child.splitText(maxOffset);
 					takeNode(child);
 				}
 			}
+			// else if (child.matches(movables)) {
+			// 	// What if we shift it down?
+			// 	let nextSibling = child.nextSibling;
+			// 	child.remove();
+			// 	let siblings = consumeUntil(remaining_height, container);
+
+			// 	// Drop anything from any headings or other movables onwards
+			// 	let hIndex = siblings.findIndex(node => node.matches?.("h1, h2, h3, h4, h5, h6, " + movables));
+			// 	if (hIndex > -1) {
+			// 		siblings = siblings.slice(0, hIndex);
+			// 	}
+
+			// 	if (siblings.filter(isNotBlank).length > 0) {
+			// 		// There are elements to move!
+			// 		takeNodes(siblings);
+			// 		siblings.at(-1).after(child);
+			// 		console.log("moved", child, "down", siblings);
+			// 	}
+			// 	else {
+			// 		// Nice try but nope, restore the child
+			// 		nextSibling.before(child);
+			// 	}
+			// }
 			else if (child.matches(fragmentainables)) {
 				let empty_lines = remaining_height / lh;
 
@@ -123,10 +173,6 @@ export default function consumeUntil (target_content_height, container, options)
 			}
 
 			break;
-		}
-		// Include the whole node if it fits or exactly matches the height
-		else {
-			takeNode(child);
 		}
 
 		if (remaining_height < 1) {
