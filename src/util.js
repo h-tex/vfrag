@@ -64,35 +64,38 @@ export function getStyle (node, {pageBreak = true, lh = true, page} = {}) {
 	return style;
 }
 
-/**
- * Binary search for the maximum valid offset within a text node
- */
-export function findMaxOffset(node, range, target_content_height) {
-	let low = 0;
-	let high = node.textContent.length;
-	let bestOffset = 0;
+function findHighestValue (low, high, f, upperBound) {
+	let left = low;
+	let right = high;
+	let best = -1; // Initialize to -1 or any value indicating no valid result found
 
-	while (low <= high) {
-		const mid = Math.floor((low + high) / 2);
+	while (left <= right) {
+		let mid = Math.floor((left + right) / 2);
+		let result = f(mid);
 
-		// Extend the original range temporarily to the midpoint of the text node
-		range.setEnd(node, mid);
-		const height = getHeight(range);
-
-		if (height === target_content_height) {
-			bestOffset = mid;
-			break;
-		}
-		else if (height < target_content_height) {
-			bestOffset = mid;
-			low = mid + 1;
+		if (result <= upperBound) {
+			best = mid;  // Update the best found value
+			left = mid + 1;  // Continue searching to the right
 		}
 		else {
-			high = mid - 1;
+			right = mid - 1;  // Search to the left
 		}
 	}
 
-	// Reset the range to its previous end point
+	return best;  // Returns the highest value found where f(x) <= h
+}
+
+/**
+ * Binary search for the maximum valid offset within a text node
+ */
+export function findMaxOffset (node, range, target_content_height) {
+	// Use binary search to find the *maximum* offset that gives the target height
+	let bestOffset = findHighestValue(0, node.textContent.length, mid => {
+		range.setEnd(node, mid);
+		return getHeight(range, {force: true});
+	}, target_content_height);
+;
+
 	range.setEnd(node, 0);
 
 	return bestOffset;

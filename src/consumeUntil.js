@@ -1,7 +1,7 @@
 import * as util from "./util.js";
 import fragmentElement from "./fragmentElement.js";
 
-export const DEFAULT_FRAGMENTAINABLES = "ol, ul, dl, div, p, details, section";
+export const DEFAULT_fragmentables = "ol, ul, dl, div, p, details, section";
 export const DEFAULT_SHIFTABLES = "figure:not(.immovable)";
 
 function isBlank (node) {
@@ -21,7 +21,7 @@ function isNotBlank (node) {
  * @returns {Array<Node>}
  */
 export default function consumeUntil (target_content_height, container, options) {
-	let fragmentainables = options?.fragmentainables || DEFAULT_FRAGMENTAINABLES;
+	let fragmentables = options?.fragmentables || DEFAULT_fragmentables;
 	let shiftables = options?.shiftables || DEFAULT_SHIFTABLES;
 
 	const nodes = [];
@@ -48,21 +48,10 @@ export default function consumeUntil (target_content_height, container, options)
 			range.setEndAfter(child);
 		}
 
-		if (style?.break_after === "always") {
-			return false;
-		}
-	}
-
-	function takeNodes (children, style = last_node_style) {
-		// Empty maybeNodes into nodes, then push children
-		nodes.push(...maybeNodes.splice(0, maybeNodes.length), ...children);
-		let last = children[children.length - 1];
-		if (last.parentNode) {
-			range.setEndAfter(last);
-		}
-
-		if (style?.break_after === "always") {
-			return false;
+		if (style) {
+			if (style.break_after === "always") {
+				return false;
+			}
 		}
 	}
 
@@ -129,11 +118,19 @@ export default function consumeUntil (target_content_height, container, options)
 			// Can we fragment it?
 			if (child.nodeType === Node.TEXT_NODE) {
 				// Handle text nodes: find the maximum offset that fits within the target height
-				const maxOffset = util.findMaxOffset(child, range, target_content_height);
-				// TODO adjust so we're not breaking words halfway
+				let maxOffset = util.findMaxOffset(child, range, target_content_height);
+
 				if (maxOffset > 0) {
-					child.splitText(maxOffset);
-					takeNode(child);
+					// adjust so we're not breaking words halfway
+					let text = child.textContent;
+					while (maxOffset > 0 && /\p{Letter}/vg.test(text[maxOffset])) {
+						maxOffset--;
+					}
+
+					if (maxOffset > 0) {
+						child.splitText(maxOffset);
+						takeNode(child);
+					}
 				}
 			}
 			else if (child.matches(shiftables)) {
@@ -143,7 +140,7 @@ export default function consumeUntil (target_content_height, container, options)
 				child.remove();
 				continue;
 			}
-			else if (child.matches(fragmentainables)) {
+			else if (child.matches(fragmentables)) {
 				let empty_lines = remaining_height / lh;
 
 				if (empty_lines > 2 && style.break_inside !== "avoid") {
@@ -151,13 +148,14 @@ export default function consumeUntil (target_content_height, container, options)
 					let child_lines = child_height / lh;
 
 					if (child_lines >= 4) {
+						child.normalize();
 						let children = [...consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options)];
-						// console.log(child, empty_lines, child_lines, children);
 
 						if (children.length > 0) {
 							let remaining = [...child.childNodes].slice(children.length);
 
 							if (children.filter(isNotBlank).length > 0 && remaining.filter(isNotBlank).length > 0) {
+								// child.classList.add("mark");
 								let fragment = fragmentElement(child, children);
 								last_node_style = null;
 								takeNode(fragment);

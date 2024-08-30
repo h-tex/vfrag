@@ -54,12 +54,16 @@ function makePaginator (container, options) {
 
 		let empty_content_height = Math.max(0, target_content_height - page_content_height);
 		let empty_lines = empty_content_height / style.lh;
-		info.empty_lines.push(empty_lines);
+
 		page.style.setProperty("--empty-lines", empty_lines);
 		page.style.setProperty("--empty-lines-text", `"${ empty_lines.toLocaleString() } empty lines"`);
 
-		if (empty_lines > 2.5 && !isLast) {
-			page.classList.add("empty-space-" + (empty_lines > 6 ? "l" : "m"));
+		if (!isLast) {
+			info.empty_lines.push(empty_lines);
+
+			if (empty_lines > 2.5) {
+				page.classList.add("empty-space-" + (empty_lines > 6 ? "l" : "m"));
+			}
 		}
 
 		page.classList.add("pagination-done");
