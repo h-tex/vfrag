@@ -125,29 +125,29 @@ export default function consumeUntil (target_content_height, container, options)
 					takeNode(child);
 				}
 			}
-			// else if (child.matches(movables)) {
-			// 	// What if we shift it down?
-			// 	let nextSibling = child.nextSibling;
-			// 	child.remove();
-			// 	let siblings = consumeUntil(remaining_height, container);
+			else if (child.matches(movables)) {
+				// What if we shift it down?
+				let nextSibling = child.nextSibling;
+				child.remove();
+				let siblings = consumeUntil(remaining_height, container, options);
 
-			// 	// Drop anything from any headings or other movables onwards
-			// 	let hIndex = siblings.findIndex(node => node.matches?.("h1, h2, h3, h4, h5, h6, " + movables));
-			// 	if (hIndex > -1) {
-			// 		siblings = siblings.slice(0, hIndex);
-			// 	}
+				// Drop anything from any headings or other movables onwards
+				let hIndex = siblings.findIndex(node => node.matches?.("h1, h2, h3, h4, h5, h6, " + movables));
+				if (hIndex > -1) {
+					siblings = siblings.slice(0, hIndex);
+				}
 
-			// 	if (siblings.filter(isNotBlank).length > 0) {
-			// 		// There are elements to move!
-			// 		takeNodes(siblings);
-			// 		siblings.at(-1).after(child);
-			// 		console.log("moved", child, "down", siblings);
-			// 	}
-			// 	else {
-			// 		// Nice try but nope, restore the child
-			// 		nextSibling.before(child);
-			// 	}
-			// }
+				if (siblings.filter(isNotBlank).length > 0) {
+					// There are elements to move!
+					takeNodes(siblings);
+					siblings.at(-1).after(child);
+					console.log("moved", child, "down", siblings);
+				}
+				else {
+					// Nice try but nope, restore the child
+					nextSibling.before(child);
+				}
+			}
 			else if (child.matches(fragmentainables)) {
 				let empty_lines = remaining_height / lh;
 
