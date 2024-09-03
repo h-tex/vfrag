@@ -130,7 +130,6 @@ export default async function paginate (container, options = {}) {
 		isLast: true,
 	});
 
-	options.totals.time += info.time;
 	options.totals.empty_lines.push(...info.empty_lines);
 
 	return info;
