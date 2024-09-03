@@ -145,5 +145,9 @@ export function getHeight (element, options) {
 }
 
 export function average (arr) {
+	if (arr.length === 0) {
+		return;
+	}
+
 	return arr.reduce((a, b) => a + b) / arr.length;
 }
