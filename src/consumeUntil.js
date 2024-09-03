@@ -24,7 +24,7 @@ export default async function consumeUntil (target_content_height, container, op
 	let fragmentables = options?.fragmentables || DEFAULT_FRAGMENTABLES;
 	let shiftables = options?.shiftables || DEFAULT_SHIFTABLES;
 
-	const nodes = [];
+	const nodes = new util.NodeStack();
 	const range = document.createRange();
 	range.setStart(container, 0);
 	range.setEnd(container, 0);
@@ -35,15 +35,11 @@ export default async function consumeUntil (target_content_height, container, op
 	let remaining_height = target_content_height;
 	let lh = container_style.lh;
 
-	// these shouldn't trigger anything by themselves, but should be taken along for the ride if a node after them gets moved
-	let maybeNodes = [];
-
 	// Element being shifted down
 	let shiftable;
 
 	function takeNode (child, style = last_node_style) {
-		// Empty maybeNodes into nodes, then push child
-		nodes.push(...maybeNodes.splice(0, maybeNodes.length), child);
+		nodes.push(child);
 		range.setEndAfter(child);
 
 		if (style) {
@@ -58,7 +54,7 @@ export default async function consumeUntil (target_content_height, container, op
 		let previous_current_height = current_height;
 		current_height = util.getHeight(range, {force: true});
 		remaining_height = target_content_height - current_height;
-
+// if (child.nodeName === "FIGURE") console.log(child.nodeName, current_height, remaining_height);
 		if (remaining_height >= -1) {
 			return true;
 		}
@@ -73,13 +69,10 @@ export default async function consumeUntil (target_content_height, container, op
 	for (let i = 0; i < container.childNodes.length; i++) {
 		let child = container.childNodes[i];
 
-		if (child.nodeType === Node.COMMENT_NODE) {
-			maybeNodes.push(child);
-			continue; // Skip comment nodes
-		}
-		else if (isBlank(child)) {
-			maybeNodes.push(child);
-			continue; // Skip empty text nodes
+		if (child.nodeType === Node.COMMENT_NODE || isBlank(child)) {
+			// Skip comment nodes and empty text nodes
+			nodes.pushWeak(child);
+			continue;
 		}
 
 		if (shiftable) {
@@ -89,10 +82,6 @@ export default async function consumeUntil (target_content_height, container, op
 				break;
 			}
 		}
-
-		options.totals.timer.pause();
-		await util.ready(child);
-		options.totals.timer.start();
 
 		let style = util.getStyle(child);
 		last_node_style = style ?? last_node_style;
@@ -104,16 +93,23 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 			if (style.break_after === "avoid"
 				|| ["absolute", "fixed"].includes(style.position)
+				|| style.display === "none"
 			) {
-				maybeNodes.push(child);
+				nodes.pushWeak(child);
 				continue;
 			}
 		}
+
+		options.totals.timer.pause();
+		await util.ready(child);
+		options.totals.timer.start();
+
 		let fits = fitsWhole(child);
 
 		// Attempt to include the whole child node
 		let isFragmentable = child.matches?.(fragmentables);
-		if (fits || nodes.length === 0 && style && !isFragmentable) {
+
+		if (fits || nodes.lengthStrong === 0 && style && !isFragmentable) {
 			// Either fits or this is a very large item that won't fit anywhere
 			takeNode(child);
 
@@ -123,9 +119,7 @@ export default async function consumeUntil (target_content_height, container, op
 				break;
 			}
 		}
-		else {
-			// Not enough space to add this whole
-
+		else { // Not enough space to add this whole
 			// Can we fragment it?
 			if (child.nodeType === Node.TEXT_NODE) {
 				// Handle text nodes: find the maximum offset that fits within the target height
@@ -146,6 +140,7 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 			else if (child.matches(shiftables)) {
 				// What if we shift it down?
+				// We only shift when it’s not the first element in the page
 				shiftable = child;
 				child._nextSibling = child.nextSibling;
 				child.remove();
@@ -165,7 +160,7 @@ export default async function consumeUntil (target_content_height, container, op
 						if (children.length > 0) {
 							let remaining = [...child.childNodes].slice(children.length);
 
-							if (children.filter(isNotBlank).length > 0 && remaining.filter(isNotBlank).length > 0) {
+							if (children.lengthStrong > 0 && remaining.filter(isNotBlank).length > 0) {
 								// child.classList.add("mark");
 								let fragment = fragmentElement(child, children);
 
@@ -188,10 +183,11 @@ export default async function consumeUntil (target_content_height, container, op
 
 	if (shiftable) {
 		// Restore the shiftable node
-		let lastNode = nodes.at(-1);
+		let lastNode = nodes.lastStrong;
 
 		if (lastNode) {
 			lastNode.after(shiftable);
+			nodes.popWeak();
 		}
 		else {
 			// No nodes were added, put it back where it was
@@ -205,18 +201,15 @@ export default async function consumeUntil (target_content_height, container, op
 	if (last_node_style?.break_after === "avoid") {
 		// We are breaking after a node that should not be broken after.
 		// Move to next page
-		let lastNode;
-		do {
-			lastNode = nodes.pop();
-		}
-		while (lastNode && lastNode.nodeType !== 1);
+		nodes.pop();
+		nodes.popWeak();
 
 		if (options?.verbose) {
 			console.info("Avoiding break after", lastNode);
 		}
 	}
 
-	range.setEndAfter(nodes.at(-1));
+	range.setEndAfter(nodes.last);
 	current_height = util.getHeight(range, {force: true});
 	remaining_height = target_content_height - current_height;
 

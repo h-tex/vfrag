@@ -33,6 +33,7 @@ export function getStyle (node, {pageBreak = true, lh = true, page} = {}) {
 	let cs = node instanceof CSSStyleDeclaration ? node : getComputedStyle(node);
 
 	style.position = cs.getPropertyValue("position");
+	style.display = cs.getPropertyValue("display");
 
 	// NOTE Does not handle complicated values, just single keywords.
 	if (pageBreak) {
@@ -148,3 +149,5 @@ export function timer () {
 }
 
 export { default as ready } from "./util/ready.js";
+
+export { default as NodeStack } from "./util/NodeStack.js";
