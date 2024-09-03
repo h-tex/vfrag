@@ -1,7 +1,7 @@
 import * as util from "./util.js";
 import fragmentElement from "./fragmentElement.js";
 
-export const DEFAULT_fragmentables = "ol, ul, dl, div, p, details, section";
+export const DEFAULT_FRAGMENTABLES = "ol, ul, dl, div, p, details, section";
 export const DEFAULT_SHIFTABLES = "figure:not(.dont-shift)";
 
 function isBlank (node) {
@@ -21,7 +21,7 @@ function isNotBlank (node) {
  * @returns {Array<Node>}
  */
 export default async function consumeUntil (target_content_height, container, options) {
-	let fragmentables = options?.fragmentables || DEFAULT_fragmentables;
+	let fragmentables = options?.fragmentables || DEFAULT_FRAGMENTABLES;
 	let shiftables = options?.shiftables || DEFAULT_SHIFTABLES;
 
 	const nodes = [];
@@ -108,7 +108,7 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 		}
 		let fits = fitsWhole(child);
-		// if (child?.id === "fig-todo") console.log(i, nodes, maybeNodes, fits);
+
 		// Attempt to include the whole child node
 		let isFragmentable = child.matches?.(fragmentables);
 		if (fits || nodes.length === 0 && style && !isFragmentable) {

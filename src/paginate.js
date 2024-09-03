@@ -76,7 +76,6 @@ export default async function paginate (container, options = {}) {
 		let fragment = container.fragments.length;
 		pageFinished(newPage, {number: page, fragment});
 
-		// console.log("Done: Page", page, "took", util.formatDuration(pageTime));
 		options.totals.timer.pause();
 	}
 
