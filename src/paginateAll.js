@@ -30,9 +30,7 @@ export default async function paginateAll (options = {}) {
 		await paginate(section, options);
 	}
 
-	let time = util.formatDuration(options.totals.timer.pause());
-	let timeAsync = util.formatDuration(options.totals.asyncTimer.pause());
-	console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ time } (total: ${ timeAsync }).`
+	console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ options.totals.timer.end() } (total: ${ options.totals.asyncTimer.end() }).`
 	+ ` Empty lines: ${ util.average(options.totals.empty_lines)?.toLocaleString() } avg, ${ Math.max(...options.totals.empty_lines).toLocaleString() } max.`);
 	options.root.classList.remove("paginating");
 	options.root.classList.add("done");

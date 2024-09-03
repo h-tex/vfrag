@@ -110,20 +110,6 @@ export function getId (id, {page, fragment}) {
 	return id + "-" + fragment;
 }
 
-export function formatDuration (ms) {
-	if (ms < 1000) {
-		return (ms < 1 ? +ms.toPrecision(2) : Math.round(ms)) + " ms";
-	}
-
-	let seconds = ms / 1000;
-	if (seconds < 60) {
-		return +seconds.toFixed(1) + " s";
-	}
-
-	let minutes = seconds / 60;
-	return +minutes.toFixed(1) + " min";
-}
-
 export function nextFrame () {
 	return new Promise(requestAnimationFrame);
 }
@@ -152,29 +138,8 @@ export function average (arr) {
 	return arr.reduce((a, b) => a + b) / arr.length;
 }
 
-export class Timer {
-	constructor () {
-		this.total = 0;
-	}
-
-	get currentTime () {
-		return this.running ? performance.now() - this.startTime : 0;
-	}
-
-	get running () {
-		return this.startTime !== undefined;
-	}
-
-	start () {
-		this.startTime = performance.now();
-	}
-
-	pause () {
-		this.total += this.currentTime;
-		this.startTime = undefined;
-		return this.total;
-	}
-}
+import Timer from "./util/Timer.js";
+export { Timer };
 
 export function timer () {
 	let ret = new Timer();
