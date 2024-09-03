@@ -188,7 +188,7 @@ export default function consumeUntil (target_content_height, container, options)
 	if (shiftable) {
 		// Restore the shiftable node
 		let lastNode = nodes.at(-1);
-		if (lastNode) {
+		if (lastNode && !lastNode.fragmentedFrom) {
 			lastNode.after(shiftable);
 		}
 		else {
