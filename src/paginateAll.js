@@ -37,7 +37,7 @@ export default function paginateAll (options = {}) {
 
 		let total = performance.now() - startTime;
 		console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ util.formatDuration(options.totals.time) } (total: ${ util.formatDuration(total) }).`
-		+ ` Empty lines: ${ util.average(options.totals.empty_lines).toLocaleString() } avg, ${ Math.max(...options.totals.empty_lines).toLocaleString() } max.`);
+		+ ` Empty lines: ${ util.average(options.totals.empty_lines)?.toLocaleString() } avg, ${ Math.max(...options.totals.empty_lines).toLocaleString() } max.`);
 		options.root.classList.remove("paginating");
 		options.root.classList.add("done");
 	})();
