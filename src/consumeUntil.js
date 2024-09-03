@@ -90,6 +90,10 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 		}
 
+		options.totals.timer.pause();
+		await util.ready(child);
+		options.totals.timer.start();
+
 		let style = util.getStyle(child);
 		last_node_style = style ?? last_node_style;
 
@@ -193,6 +197,9 @@ export default async function consumeUntil (target_content_height, container, op
 			// No nodes were added, put it back where it was
 			shiftable._nextSibling.before(shiftable);
 		}
+
+		// Reparenting will force it to reload which can throw off future measurements
+		await util.ready(shiftable, {force: true});
 	}
 
 	if (last_node_style?.break_after === "avoid") {
