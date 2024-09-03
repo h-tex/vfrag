@@ -81,7 +81,6 @@ export default async function paginate (container, options = {}) {
 	}
 
 	for (; (w / (h = container.offsetHeight)) <= aspectRatio && h > min_page_height; page++) {
-		let timeStart = performance.now();
 		// Add nodes to the nodes array until the page is full
 		let nodes = await consumeUntil(target_content_height, container, options);
 
@@ -99,8 +98,6 @@ export default async function paginate (container, options = {}) {
 				}
 			}
 		}
-
-		info.time += performance.now() - timeStart;
 
 		if (nodes.length > 0) {
 			if (options.animation && supportsViewTransitions) {
