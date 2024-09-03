@@ -160,7 +160,7 @@ export default async function consumeUntil (target_content_height, container, op
 
 					if (child_lines >= 3.99) {
 						child.normalize();
-						let children = await consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options);
+						let {nodes: children} = await consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options);
 
 						if (children.length > 0) {
 							let remaining = [...child.childNodes].slice(children.length);
@@ -216,6 +216,13 @@ export default async function consumeUntil (target_content_height, container, op
 		}
 	}
 
-	return nodes;
+	range.setEndAfter(nodes.at(-1));
+	current_height = util.getHeight(range, {force: true});
+	remaining_height = target_content_height - current_height;
+
+	let empty = Math.max(0, remaining_height);
+	let emptyLines = empty / lh;
+
+	return { nodes, range, empty, emptyLines };
 }
 

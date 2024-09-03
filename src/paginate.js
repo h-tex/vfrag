@@ -45,35 +45,25 @@ export default async function paginate (container, options = {}) {
 			textContent: number,
 		});
 
-		// Calculate empty space
-		let range = document.createRange();
-		range.selectNodeContents(page);
-
-		let page_content_height = util.getHeight(range, {force: true});
 		page.append(pageNumber);
-
-		let empty_content_height = Math.max(0, target_content_height - page_content_height);
-		let empty_lines = empty_content_height / style.lh;
-
-		page.style.setProperty("--empty-lines", empty_lines);
-		page.style.setProperty("--empty-lines-text", `"${ empty_lines.toLocaleString() }"`);
-
-		if (!isLast) {
-			info.empty_lines.push(empty_lines);
-
-			if (empty_lines > 2.5) {
-				page.classList.add("empty-space-" + (empty_lines > 6 ? "l" : "m"));
-			}
-		}
 
 		page.classList.add("pagination-done");
 	}
 
-	function fragmentPage (nodes) {
+	function fragmentPage (nodes, emptyLines) {
 		options.totals.timer.start();
 
 		let newPage = fragmentElement(container, nodes);
 		let fragment = container.fragments.length;
+
+		info.empty_lines.push(emptyLines);
+		newPage.style.setProperty("--empty-lines", emptyLines);
+		newPage.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
+
+		if (emptyLines > 2.5) {
+			newPage.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
+		}
+
 		pageFinished(newPage, {number: page, fragment});
 
 		options.totals.timer.pause();
@@ -81,7 +71,7 @@ export default async function paginate (container, options = {}) {
 
 	for (; (w / (h = container.offsetHeight)) <= aspectRatio && h > min_page_height; page++) {
 		// Add nodes to the nodes array until the page is full
-		let nodes = await consumeUntil(target_content_height, container, options);
+		let {nodes, emptyLines} = await consumeUntil(target_content_height, container, options);
 
 		if (nodes.length === 0) {
 			// This typically happens when there is a very large item that cannot be fragmented, e.g. a very large figure
@@ -105,7 +95,7 @@ export default async function paginate (container, options = {}) {
 				await document.startViewTransition(() => fragmentPage(nodes, emptyLines)).finished;
 			}
 			else {
-				await fragmentPage(nodes);
+				await fragmentPage(nodes, emptyLines);
 				await util.nextFrame();
 			}
 
