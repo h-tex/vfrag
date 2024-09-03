@@ -2,7 +2,7 @@ import * as util from "./util.js";
 import fragmentElement from "./fragmentElement.js";
 
 export const DEFAULT_fragmentables = "ol, ul, dl, div, p, details, section";
-export const DEFAULT_SHIFTABLES = "figure:not(.immovable)";
+export const DEFAULT_SHIFTABLES = "figure:not(.dont-shift)";
 
 function isBlank (node) {
 	return node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "";
@@ -61,7 +61,7 @@ export default function consumeUntil (target_content_height, container, options)
 		current_height = util.getHeight(range, {force: true});
 		remaining_height = target_content_height - current_height;
 
-		if (remaining_height >= 0) {
+		if (remaining_height >= -1) {
 			return true;
 		}
 
@@ -74,8 +74,6 @@ export default function consumeUntil (target_content_height, container, options)
 
 	for (let i = 0; i < container.childNodes.length; i++) {
 		let child = container.childNodes[i];
-
-
 
 		if (child.nodeType === Node.COMMENT_NODE) {
 			maybeNodes.push(child);
