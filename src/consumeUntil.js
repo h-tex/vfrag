@@ -166,6 +166,13 @@ export default function consumeUntil (target_content_height, container, options)
 							if (children.filter(isNotBlank).length > 0 && remaining.filter(isNotBlank).length > 0) {
 								// child.classList.add("mark");
 								let fragment = fragmentElement(child, children);
+
+								if (shiftable) {
+									// We need the fragment to be in the DOM in case we need to
+									// insert the shiftable node after it
+									child.before(fragment);
+								}
+
 								last_node_style = null;
 								takeNode(fragment);
 							}
@@ -186,10 +193,12 @@ export default function consumeUntil (target_content_height, container, options)
 	if (shiftable) {
 		// Restore the shiftable node
 		let lastNode = nodes.at(-1);
-		if (lastNode && !lastNode.fragmentedFrom) {
+
+		if (lastNode) {
 			lastNode.after(shiftable);
 		}
 		else {
+			// No nodes were added, put it back where it was
 			shiftable._nextSibling.before(shiftable);
 		}
 	}
