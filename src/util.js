@@ -151,3 +151,33 @@ export function average (arr) {
 
 	return arr.reduce((a, b) => a + b) / arr.length;
 }
+
+export class Timer {
+	constructor () {
+		this.total = 0;
+	}
+
+	get currentTime () {
+		return this.running ? performance.now() - this.startTime : 0;
+	}
+
+	get running () {
+		return this.startTime !== undefined;
+	}
+
+	start () {
+		this.startTime = performance.now();
+	}
+
+	pause () {
+		this.total += this.currentTime;
+		this.startTime = undefined;
+		return this.total;
+	}
+}
+
+export function timer () {
+	let ret = new Timer();
+	ret.start();
+	return ret;
+}

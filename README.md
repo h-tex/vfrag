@@ -82,7 +82,6 @@ The available options are:
 |--------|------|---------|-------------|
 | `sections` | `string` or `Array<Element>` | `".page"` | The container(s) to paginate. |
 | `root` | `Element` | `document.documentElement` | The root element to query for fragmentation containers and to apply the `.paginated` class to. |
-| `sync` | `boolean` | `false` | If true, everything will be done synchronously (which also means no view transition) |
 
 ### `paginate()` and `paginateAll()`
 
