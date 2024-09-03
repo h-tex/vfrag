@@ -42,9 +42,6 @@ export default async function paginate (container, options = {}) {
 			textContent: number,
 		});
 
-		// Insert new page before source
-		container.before(page);
-
 		// Calculate empty space
 		let range = document.createRange();
 		range.selectNodeContents(page);

@@ -41,5 +41,9 @@ export default function fragmentElement (original, nodes) {
 		}
 	}
 
+	if (original.parentNode) {
+		original.before(fragment);
+	}
+
 	return fragment;
 }

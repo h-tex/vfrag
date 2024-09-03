@@ -44,9 +44,7 @@ export default async function consumeUntil (target_content_height, container, op
 	function takeNode (child, style = last_node_style) {
 		// Empty maybeNodes into nodes, then push child
 		nodes.push(...maybeNodes.splice(0, maybeNodes.length), child);
-		if (child.parentNode) {
-			range.setEndAfter(child);
-		}
+		range.setEndAfter(child);
 
 		if (style) {
 			if (style.break_after === "always") {
@@ -166,12 +164,6 @@ export default async function consumeUntil (target_content_height, container, op
 							if (children.filter(isNotBlank).length > 0 && remaining.filter(isNotBlank).length > 0) {
 								// child.classList.add("mark");
 								let fragment = fragmentElement(child, children);
-
-								if (shiftable) {
-									// We need the fragment to be in the DOM in case we need to
-									// insert the shiftable node after it
-									child.before(fragment);
-								}
 
 								last_node_style = null;
 								takeNode(fragment);
