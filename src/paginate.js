@@ -1,7 +1,7 @@
 import * as util from "./util.js";
 import consumeUntil from "./consumeUntil.js";
 import fragmentElement from "./fragmentElement.js";
-const MAX_PAGES = 300;
+const MAX_PAGES = 600;
 const supportsViewTransitions = Boolean(document.startViewTransition);
 
 
