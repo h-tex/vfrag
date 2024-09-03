@@ -20,7 +20,7 @@ function isNotBlank (node) {
  * @param {Element} container
  * @returns {Array<Node>}
  */
-export default function consumeUntil (target_content_height, container, options) {
+export default async function consumeUntil (target_content_height, container, options) {
 	let fragmentables = options?.fragmentables || DEFAULT_fragmentables;
 	let shiftables = options?.shiftables || DEFAULT_SHIFTABLES;
 
@@ -158,7 +158,7 @@ export default function consumeUntil (target_content_height, container, options)
 
 					if (child_lines >= 3.99) {
 						child.normalize();
-						let children = [...consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options)];
+						let children = await consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options);
 
 						if (children.length > 0) {
 							let remaining = [...child.childNodes].slice(children.length);

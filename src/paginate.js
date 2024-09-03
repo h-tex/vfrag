@@ -83,7 +83,7 @@ export default async function paginate (container, options = {}) {
 	for (; (w / (h = container.offsetHeight)) <= aspectRatio && h > min_page_height; page++) {
 		let timeStart = performance.now();
 		// Add nodes to the nodes array until the page is full
-		let nodes = consumeUntil(target_content_height, container, options);
+		let nodes = await consumeUntil(target_content_height, container, options);
 
 		if (nodes.length === 0) {
 			// This typically happens when there is a very large item that cannot be fragmented, e.g. a very large figure
