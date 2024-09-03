@@ -7,6 +7,8 @@ const supportsViewTransitions = Boolean(document.startViewTransition);
 // Paginate by breaking down .page into multiple .page elements
 export default async function paginate (container, options = {}) {
 	options.totals ??= {pages: 0, timer: new util.Timer(), asyncTimer: util.timer(), empty_lines: []};
+	options.totals.timer.start();
+
 	let {startAt = options.totals.pages + 1, aspectRatio = 8.5/11} = options;
 	let w = container.offsetWidth;
 	let id = container.id;
@@ -17,6 +19,7 @@ export default async function paginate (container, options = {}) {
 	let h;
 	let page = startAt;
 	let info = {pages: 1, time: 0, empty_lines: []};
+	let doTransition = options.animation && supportsViewTransitions;
 
 	/**
 	 * Add page number, and empty content
@@ -96,14 +99,17 @@ export default async function paginate (container, options = {}) {
 		}
 
 		if (nodes.length > 0) {
-			if (options.animation && supportsViewTransitions) {
-				await document.startViewTransition(() => fragmentPage(nodes)).finished;
+			options.totals.timer.pause();
+
+			if (doTransition) {
+				await document.startViewTransition(() => fragmentPage(nodes, emptyLines)).finished;
 			}
 			else {
 				await fragmentPage(nodes);
 				await util.nextFrame();
 			}
 
+			options.totals.timer.start();
 		}
 		else {
 			h = container.offsetHeight;
@@ -124,6 +130,7 @@ export default async function paginate (container, options = {}) {
 	});
 
 	options.totals.empty_lines.push(...info.empty_lines);
+	options.totals.timer.pause();
 
 	return info;
 }
