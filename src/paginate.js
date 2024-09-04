@@ -26,7 +26,7 @@ export default async function paginate (container, options = {}) {
 	 * @param {*} page
 	 * @param {*} param1
 	 */
-	function pageFinished (page, {number, fragment, isLast}) {
+	function pageFinished (page, {number, fragment}) {
 		// Update page stats
 		info.pages++;
 		options.totals.pages++;
@@ -116,7 +116,6 @@ export default async function paginate (container, options = {}) {
 	pageFinished(container, {
 		number: page,
 		fragment: container.fragments?.length ?? 1,
-		isLast: true,
 	});
 
 	options.totals.empty_lines.push(...info.empty_lines);

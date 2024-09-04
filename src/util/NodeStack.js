@@ -43,7 +43,7 @@ export default class NodeStack {
 		return this.#heights[this.#heights.length - 1] ??= this.range.getBoundingClientRect().height;
 	}
 
-	#changed () {
+	#update () {
 		if (this.last) {
 			this.range.setEndAfter(this.last);
 		}
@@ -56,7 +56,7 @@ export default class NodeStack {
 		this.#weak.push(...nodes.map(_ => true));
 		this.#heights.push(...nodes.map(_ => undefined));
 		let ret = this.#all.push(...nodes);
-		this.#changed();
+		this.#update();
 		return ret;
 	}
 
@@ -65,7 +65,7 @@ export default class NodeStack {
 		this.#weak.push(...nodes.map(_ => false));
 		this.#heights.push(...nodes.map(_ => undefined));
 		let ret = this.#all.push(...nodes);
-		this.#changed();
+		this.#update();
 		return ret;
 	}
 
@@ -78,7 +78,7 @@ export default class NodeStack {
 			this.#heights.pop();
 		}
 
-		this.#changed();
+		this.#update();
 
 		return ret;
 	}
@@ -91,7 +91,7 @@ export default class NodeStack {
 			this.#lengthStrong--;
 		}
 
-		this.#changed();
+		this.#update();
 
 		return ret;
 	}
