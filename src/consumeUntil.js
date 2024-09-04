@@ -31,22 +31,10 @@ export default async function consumeUntil (target_content_height, container, op
 
 	let container_style = util.getStyle(container, {pageBreak: false});
 	let last_node_style;
-	let lh = container_style.lh;
+	let lh = container_style.line_height;
 
 	// Element being shifted down
 	let shiftable;
-
-	function takeNode (child, style = last_node_style) {
-		if (child !== nodes.last) {
-			nodes.push(child);
-		}
-
-		if (style) {
-			if (style.break_after === "always") {
-				return false;
-			}
-		}
-	}
 
 	function fitsWhole (child) {
 		nodes.push(child);

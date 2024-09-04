@@ -4,13 +4,13 @@ export function getOuterHeight (innerHeight, style) {
 		return innerHeight;
 	}
 	else if (style.box_sizing === "content-box") {
-		return innerHeight + style.padding_block;
+		return innerHeight + style.padding_block_start + style.padding_block_end;
 	}
 }
 
 export function getInnerHeight (outerHeight, style) {
 	if (style.box_sizing === "border-box") {
-		return outerHeight - style.padding_block;
+		return outerHeight - (style.padding_block_start + style.padding_block_end);
 	}
 	else if (style.box_sizing === "content-box") {
 		return outerHeight;
@@ -18,7 +18,10 @@ export function getInnerHeight (outerHeight, style) {
 }
 
 const styles = new WeakMap();
-export function getStyle (node, {pageBreak = true, lh = true, page} = {}) {
+const categoricalProperties = ["position", "display", "box-sizing", "page-break-before", "page-break-inside", "page-break-after"];
+const lengthProperties = ["padding-block-start", "padding-block-end", "min-height", "line-height"];
+
+export function getStyle (node) {
 	if (!node || node instanceof Node && node.nodeType !== 1) {
 		return null;
 	}
@@ -32,33 +35,18 @@ export function getStyle (node, {pageBreak = true, lh = true, page} = {}) {
 	style = {};
 	let cs = node instanceof CSSStyleDeclaration ? node : getComputedStyle(node);
 
-	style.position = cs.getPropertyValue("position");
-	style.display = cs.getPropertyValue("display");
+	for (let cssProperty of categoricalProperties) {
+		let property = cssProperty.replace(/^page-/, "").replaceAll("-", "_");
+		let value = cs.getPropertyValue(cssProperty);
 
-	// NOTE Does not handle complicated values, just single keywords.
-	if (pageBreak) {
-		for (let prop of ["inside", "before", "after"]) {
-			let value = cs.getPropertyValue("break-" + prop);
-			if (value === "auto") {
-				value = cs.getPropertyValue("page-break-" + prop);
-			}
-
-			if (value !== "auto") {
-				style['break_' + prop] = value;
-			}
+		if (value !== "auto") {
+			style[property] = value;
 		}
 	}
 
-	if (lh) {
-		style.lh = parseFloat(cs.getPropertyValue("line-height"));
-	}
-
-	if (page) {
-		style.padding_block_start = parseFloat(cs.getPropertyValue("padding-block-start")) || 0,
-		style.padding_block_end = parseFloat(cs.getPropertyValue("padding-block-end")) || 0,
-		style.padding_block = style.padding_block_start + style.padding_block_end;
-		style.box_sizing = cs.getPropertyValue("box-sizing");
-		style.min_height = parseFloat(cs.getPropertyValue("min-height")) || 0;
+	for (let cssProperty of lengthProperties) {
+		let property = cssProperty.replaceAll("-", "_");
+		style[property] = parseFloat(cs.getPropertyValue(cssProperty)) || 0;
 	}
 
 	styles.set(node, style);
