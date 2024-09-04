@@ -3,7 +3,11 @@ export default class NodeStack {
 	#weak;
 	#lengthStrong;
 
-	constructor () {
+	constructor (container) {
+		this.container = container;
+		this.range = container.ownerDocument.createRange();
+		this.range.setStart(container, 0);
+		this.range.setEnd(container, 0);
 		this.#all = [];
 		this.#lengthStrong = 0;
 
@@ -33,15 +37,36 @@ export default class NodeStack {
 		return this.#all[Symbol.iterator]();
 	}
 
+	#heights = [];
+
+	get height () {
+		return this.#heights[this.#heights.length - 1] ??= this.range.getBoundingClientRect().height;
+	}
+
+	#changed () {
+		if (this.last) {
+			this.range.setEndAfter(this.last);
+		}
+		else {
+			this.range.setEnd(this.container, 0);
+		}
+	}
+
 	pushWeak (...nodes) {
 		this.#weak.push(...nodes.map(_ => true));
-		return this.#all.push(...nodes);
+		this.#heights.push(...nodes.map(_ => undefined));
+		let ret = this.#all.push(...nodes);
+		this.#changed();
+		return ret;
 	}
 
 	push (...nodes) {
 		this.#lengthStrong += nodes.length;
 		this.#weak.push(...nodes.map(_ => false));
-		return this.#all.push(...nodes);
+		this.#heights.push(...nodes.map(_ => undefined));
+		let ret = this.#all.push(...nodes);
+		this.#changed();
+		return ret;
 	}
 
 	popWeak () {
@@ -50,7 +75,10 @@ export default class NodeStack {
 		while (this.#weak.at(-1)) {
 			this.#weak.pop();
 			this.#all.pop();
+			this.#heights.pop();
 		}
+
+		this.#changed();
 
 		return ret;
 	}
@@ -58,6 +86,12 @@ export default class NodeStack {
 	pop () {
 		let ret = this.#all.pop();
 		let wasWeak = this.#weak.pop();
+		this.#heights.pop();
+		if (!wasWeak) {
+			this.#lengthStrong--;
+		}
+
+		this.#changed();
 
 		return ret;
 	}

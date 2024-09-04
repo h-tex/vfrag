@@ -24,23 +24,22 @@ export default async function consumeUntil (target_content_height, container, op
 	let fragmentables = options?.fragmentables || DEFAULT_FRAGMENTABLES;
 	let shiftables = options?.shiftables || DEFAULT_SHIFTABLES;
 
-	const nodes = new util.NodeStack();
-	const range = document.createRange();
-	range.setStart(container, 0);
-	range.setEnd(container, 0);
+	const nodes = new util.NodeStack(container);
+
+	// Account for rounding errors
+	target_content_height++;
 
 	let container_style = util.getStyle(container, {pageBreak: false});
 	let last_node_style;
-	let current_height = 0;
-	let remaining_height = target_content_height;
 	let lh = container_style.lh;
 
 	// Element being shifted down
 	let shiftable;
 
 	function takeNode (child, style = last_node_style) {
-		nodes.push(child);
-		range.setEndAfter(child);
+		if (child !== nodes.last) {
+			nodes.push(child);
+		}
 
 		if (style) {
 			if (style.break_after === "always") {
@@ -50,19 +49,14 @@ export default async function consumeUntil (target_content_height, container, op
 	}
 
 	function fitsWhole (child) {
-		range.setEndAfter(child);
-		let previous_current_height = current_height;
-		current_height = util.getHeight(range, {force: true});
-		remaining_height = target_content_height - current_height;
-// if (child.nodeName === "FIGURE") console.log(child.nodeName, current_height, remaining_height);
-		if (remaining_height >= -1) {
+		nodes.push(child);
+
+		if (target_content_height >= nodes.height) {
 			return true;
 		}
 
 		// Adding this child node would exceed the target height, abort mission!
-		range.setEndBefore(child);
-		current_height = previous_current_height;
-		remaining_height = target_content_height - current_height;
+		nodes.pop();
 		return false;
 	}
 
@@ -106,13 +100,13 @@ export default async function consumeUntil (target_content_height, container, op
 
 		if (style) {
 			if (i > 0 && style.break_before === "always") {
-				range.setEndBefore(child);
 				break;
 			}
-			if (style.break_after === "avoid"
-				|| ["absolute", "fixed"].includes(style.position)
+
+			if (["absolute", "fixed"].includes(style.position)
 				|| style.display === "none"
 			) {
+				// These do not affect layout
 				nodes.pushWeak(child);
 				continue;
 			}
@@ -122,26 +116,24 @@ export default async function consumeUntil (target_content_height, container, op
 		await util.ready(child);
 		options.totals.timer.start();
 
-		let fits = fitsWhole(child);
+		if (fitsWhole(child)) {
+			if (style?.break_after === "always") {
+				break;
+			}
+			else if (style?.break_after === "avoid") {
+				nodes.pop();
+				nodes.pushWeak(child);
+			}
 
-		// Attempt to include the whole child node
-		let isFragmentable = child.matches?.(fragmentables);
-
-		if (fits || nodes.lengthStrong === 0 && style && !isFragmentable) {
-			// Either fits or this is a very large item that won't fit anywhere
-			takeNode(child);
-
-			if (!fits) {
-				// This is a very large item that won't fit anywhere, don’t try to fit anything else
-				console.warn("Overly large element:", child, `(${util.getHeight(child)} > ${target_content_height})`);
+			if (nodes.height >= target_content_height) {
+				// We've reached the target height, no need to process further
 				break;
 			}
 		}
-		else { // Not enough space to add this whole
-			// Can we fragment it?
+		else { // Doesn't fit whole, what else can we do?
 			if (child.nodeType === Node.TEXT_NODE) {
-				// Handle text nodes: find the maximum offset that fits within the target height
-				let maxOffset = util.findMaxOffset(child, range, target_content_height);
+				// Handle fragmenting text nodes: find the maximum offset that fits within the target height
+				let maxOffset = util.findMaxOffset(child, nodes.range, target_content_height);
 
 				if (maxOffset > 0) {
 					// adjust so we're not breaking words halfway
@@ -152,23 +144,17 @@ export default async function consumeUntil (target_content_height, container, op
 
 					if (maxOffset > 0) {
 						child.splitText(maxOffset);
-						takeNode(child);
+						nodes.push(child);
 					}
 				}
 			}
-			else if (child.matches(shiftables)) {
-				// What if we shift it down?
-				// We only shift when it’s not the first element in the page
-				shiftable = child;
-				child._heading = options.openHeadings?.at(-1);
-				child._nextSibling = child.nextSibling;
-				child.remove();
-				continue;
-			}
-			else if (isFragmentable) {
+			else if (child.matches(fragmentables) && style.break_inside !== "avoid") {
+				// We can maybe fragment it
+
+				let remaining_height = target_content_height - nodes.height;
 				let empty_lines = remaining_height / lh;
 
-				if (empty_lines >= 2 && style.break_inside !== "avoid") {
+				if (empty_lines >= 2) {
 					let child_height = util.getHeight(child, {force: true});
 					let child_lines = child_height / lh;
 
@@ -184,18 +170,29 @@ export default async function consumeUntil (target_content_height, container, op
 								let fragment = fragmentElement(child, children);
 
 								last_node_style = null;
-								takeNode(fragment);
+								nodes.push(fragment);
 							}
 						}
 					}
 				}
 			}
+			else if (nodes.lengthStrong === 0) {
+				// This is a very large item that won't fit anywhere, don’t try to fit anything else
+				nodes.push(child);
 
-			break;
-		}
+				console.warn("Overly large element:", child, `(${util.getHeight(child, {force: 1})} > ${target_content_height})`);
+			}
+			else if (child.matches(shiftables)) {
+				// What if we shift it down?
+				// We only shift when it’s not the first element in the page
+				shiftable = child;
+				child._heading = options.openHeadings?.at(-1);
+				child._nextSibling = child.nextSibling;
+				child.remove();
+				continue;
+			}
 
-		if (remaining_height < 1) {
-			// We've reached the target height, no need to process further
+			// If we've reached the point of fragmenting a node, we definitely can't fit more
 			break;
 		}
 	}
@@ -217,24 +214,13 @@ export default async function consumeUntil (target_content_height, container, op
 		await util.ready(shiftable, {force: true});
 	}
 
-	if (last_node_style?.break_after === "avoid") {
-		// We are breaking after a node that should not be broken after.
-		// Move to next page
-		nodes.pop();
-		nodes.popWeak();
+	nodes.popWeak();
 
-		if (options?.verbose) {
-			console.info("Avoiding break after", lastNode);
-		}
-	}
-
-	range.setEndAfter(nodes.last);
-	current_height = util.getHeight(range, {force: true});
-	remaining_height = target_content_height - current_height;
+	let remaining_height = target_content_height - nodes.height;
 
 	let empty = Math.max(0, remaining_height);
 	let emptyLines = empty / lh;
 
-	return { nodes, range, empty, emptyLines };
+	return { nodes, empty, emptyLines };
 }
 
