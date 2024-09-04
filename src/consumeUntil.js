@@ -77,9 +77,27 @@ export default async function consumeUntil (target_content_height, container, op
 
 		if (shiftable) {
 			// We’re shifting a node down to make space, should we stop?
-			if (child.matches("h1, h2, h3, h4, h5, h6, " + shiftables)) {
-				// No more shifting
+			if (child.matches(shiftables)) {
+				// Can't shift beyond another shiftable
 				break;
+			}
+		}
+
+		if (/^H[1-6]$/i.test(child.nodeName)) {
+			let level = Number(child.nodeName[1]);
+			options.openHeadings ??= [];
+			while (options.openHeadings.length > level) {
+				options.openHeadings.pop();
+			}
+			options.openHeadings.push(child);
+
+			if (shiftable) {
+				let shiftableLevel = shiftable._heading ? Number(shiftable._heading.nodeName[1]) : 0;
+
+				if (level <= shiftableLevel) {
+					// Can't shift to a different section, what is this, LaTeX?
+					break;
+				}
 			}
 		}
 
@@ -142,6 +160,7 @@ export default async function consumeUntil (target_content_height, container, op
 				// What if we shift it down?
 				// We only shift when it’s not the first element in the page
 				shiftable = child;
+				child._heading = options.openHeadings?.at(-1);
 				child._nextSibling = child.nextSibling;
 				child.remove();
 				continue;
