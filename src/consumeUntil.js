@@ -30,7 +30,6 @@ export default async function consumeUntil (target_content_height, container, op
 	target_content_height++;
 
 	let container_style = util.getStyle(container);
-	let last_node_style;
 	let lh = container_style.line_height;
 
 	// Element being shifted down
@@ -81,7 +80,6 @@ export default async function consumeUntil (target_content_height, container, op
 		}
 
 		let style = util.getStyle(child);
-		last_node_style = style ?? last_node_style;
 
 		if (style) {
 			if (i > 0 && style.break_before === "always") {
@@ -172,7 +170,6 @@ export default async function consumeUntil (target_content_height, container, op
 								// child.classList.add("mark");
 								let fragment = fragmentElement(child, consumed);
 
-								last_node_style = null;
 								nodes.push(fragment);
 							}
 						}
