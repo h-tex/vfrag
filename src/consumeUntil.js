@@ -193,7 +193,7 @@ export default async function consumeUntil (target_content_height, container, op
 				...options,
 				startAt: i + 1,
 				// We cannot shift beyond a heading with level <= of heading or another shiftable
-				stopAt: n => H1_to[heading.nodeName].test(n.nodeName) || util.isShiftable(n, options),
+				stopAt: n => H1_to[heading?.nodeName]?.test(n.nodeName) || util.isShiftable(n, options),
 			};
 
 			if (up.go) {
@@ -212,7 +212,7 @@ export default async function consumeUntil (target_content_height, container, op
 			// Now try shifting down
 			let down = {};
 
-			down.emptySpace = target_content_height - nodes.height - height;
+			down.emptySpace = target_content_height - nodes.height;
 			down.consumed = await consumeUntil(down.emptySpace, container, consumeOptions);
 			down.go = down.consumed.nodes.length > 0;
 
