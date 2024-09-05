@@ -29,6 +29,7 @@ export default function fragmentElement (original, nodes) {
 
 	// Add styling/script hooks
 	fragment.classList.add("fragment")
+	fragment.classList.remove("source");
 	fragment.dataset.fragment = original.fragments.length;
 	original.dataset.fragment = original.fragments.length + 1;
 
