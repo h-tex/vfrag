@@ -19,7 +19,7 @@ export function getInnerHeight (outerHeight, style) {
 
 const styles = new WeakMap();
 const categoricalProperties = ["position", "display", "box-sizing", "page-break-before", "page-break-inside", "page-break-after"];
-const lengthProperties = ["padding-block-start", "padding-block-end", "min-height", "line-height"];
+const numericalProperties = ["padding-block-start", "padding-block-end", "min-height", "line-height"];
 
 export function getStyle (node) {
 	if (!node || node instanceof Node && node.nodeType !== 1) {
@@ -44,7 +44,7 @@ export function getStyle (node) {
 		}
 	}
 
-	for (let cssProperty of lengthProperties) {
+	for (let cssProperty of numericalProperties) {
 		let property = cssProperty.replaceAll("-", "_");
 		style[property] = parseFloat(cs.getPropertyValue(cssProperty)) || 0;
 	}

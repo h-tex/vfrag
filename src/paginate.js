@@ -11,8 +11,7 @@ export default async function paginate (container, options = {}) {
 
 	let {startAt = options.totals.pages + 1, aspectRatio = 8.5/11} = options;
 	let w = container.offsetWidth;
-	let id = container.id;
-	let style = util.getStyle(container, {page: true, pageBreak: false});
+	let style = util.getStyle(container);
 	let min_page_height = Math.ceil(util.getOuterHeight(style.min_height, style));
 	let target_page_height = w / aspectRatio;
 	let target_content_height = util.getInnerHeight(target_page_height, style);
