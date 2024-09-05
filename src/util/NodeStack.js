@@ -100,7 +100,7 @@ export default class NodeStack extends Array {
 
 		while (this.length > 0 && this.weak.at(-1)) {
 			this.weak.pop();
-			ret.push(this.pop());
+			ret.push(super.pop());
 			this.heights.pop();
 		}
 
