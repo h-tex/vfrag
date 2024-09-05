@@ -4,6 +4,7 @@ import fragmentElement from "./fragmentElement.js";
 export const DEFAULT_FRAGMENTABLES = "ol, ul, dl, div, p, details, section, .fragmentable";
 export const DEFAULT_SHIFTABLES = "figure:not(.dont-shift), .shiftable";
 
+let H1_to = Object.fromEntries(Array.from({length: 6}, (_, i) => ["H" + (i + 1), i === 0 ? /^H1$/ : RegExp(`^H[1-${ (i + 1) }]$`)]));
 
 /**
  * Return an array of child nodes (or parts thereof) that fit within the target height.
@@ -13,9 +14,9 @@ export const DEFAULT_SHIFTABLES = "figure:not(.dont-shift), .shiftable";
  * @param {Element} container
  * @returns {Array<Node>}
  */
-export default async function consumeUntil (target_content_height, container, options) {
-	let fragmentables = options?.fragmentables || DEFAULT_FRAGMENTABLES;
-	let shiftables = options?.shiftables || DEFAULT_SHIFTABLES;
+export default async function consumeUntil (target_content_height, container, options = {}) {
+	options.fragmentables ??= DEFAULT_FRAGMENTABLES;
+	options.shiftables ??= DEFAULT_SHIFTABLES;
 
 	const nodes = new util.NodeStack(container);
 
@@ -44,16 +45,13 @@ export default async function consumeUntil (target_content_height, container, op
 			continue;
 		}
 
-		if (shiftable) {
-			// We’re shifting a node down to make space, should we stop?
-			if (child.matches(shiftables)) {
-				// Can't shift beyond another shiftable
-				breaker = "shiftable-shiftable";
-				break;
-			}
+		if (shiftable && util.isShiftable(child, options)) {
+			// Can't shift beyond another shiftable
+			breaker = "shiftable-shiftable";
+			break;
 		}
 
-		if (/^H[1-6]$/i.test(child.nodeName)) {
+		if (H1_to.H6.test(child.nodeName)) {
 			let level = Number(child.nodeName[1]);
 			options.openHeadings ??= [];
 			while (options.openHeadings.length > level) {
@@ -103,6 +101,7 @@ export default async function consumeUntil (target_content_height, container, op
 				break;
 			}
 			else if (style?.break_after === "avoid") {
+				// Convert to weak node
 				nodes.pop();
 				nodes.pushWeak(child);
 			}
@@ -113,7 +112,7 @@ export default async function consumeUntil (target_content_height, container, op
 				break;
 			}
 		}
-		else { // Doesn't fit whole, what else can we do?
+		else if (util.isFragmentable(child, options)) {
 			if (child.nodeType === Node.TEXT_NODE) {
 				// Handle fragmenting text nodes: find the maximum offset that fits within the target height
 				let maxOffset = util.findMaxOffset(child, nodes.range, target_content_height);
@@ -131,12 +130,11 @@ export default async function consumeUntil (target_content_height, container, op
 					}
 				}
 			}
-			else if (child.matches(fragmentables) && style.break_inside !== "avoid") {
-				// We can maybe fragment it
-
+			else { // element
 				let remaining_height = target_content_height - nodes.height;
 				let empty_lines = remaining_height / lh;
 
+				// TODO use CSS widows and orphans rather than these hardcoded values
 				if (empty_lines >= 2) {
 					let child_height = util.getHeight(child, {force: true});
 					let child_lines = child_height / lh;
@@ -161,25 +159,29 @@ export default async function consumeUntil (target_content_height, container, op
 					}
 				}
 			}
-			else if (nodes.lengthStrong === 0) {
-				// This is a very large item that won't fit anywhere, don’t try to fit anything else
-				nodes.push(child);
-
-				console.warn("Overly large element:", child, `(${util.getHeight(child, {force: 1})} > ${target_content_height})`);
-			}
-			else if (child.matches(shiftables)) {
-				// What if we shift it down?
-				// We only shift when it’s not the first element in the page
-				shiftable = child;
-				child._heading = options.openHeadings?.at(-1);
-				child._nextSibling = child.nextSibling;
-				child.remove();
-				continue;
-			}
 
 			// If we've reached the point of fragmenting a node, we definitely can't fit more
 			breaker = "fragmentation";
 			break;
+		}
+		else if (nodes.lengthStrong === 0) {
+			// This is an item that is larger than the available space by itself and can't be fragmented
+			// Take it because it has to go somewhere but don’t try to fit anything else
+			nodes.push(child);
+
+			console.warn("Overly large element:", child, `(${util.getHeight(child, {force: 1})} > ${target_content_height})`);
+
+			breaker = "oversized";
+			break;
+		}
+		else if (util.isShiftable(child, options)) {
+			// This element can be shifted up/down, i.e. doesn’t depend on the content flow
+			// We only shift when it’s not the first element in the page (which is taken care of by the previous condition)
+			// TODO try shifting up
+			shiftable = child;
+			child._heading = options.openHeadings?.at(-1);
+			child._nextSibling = child.nextSibling;
+			child.remove();
 		}
 	}
 

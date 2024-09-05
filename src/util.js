@@ -120,3 +120,27 @@ export function affectsLayout (node) {
 
 	return true;
 }
+
+export function isFragmentable (node, options) {
+	if (node.nodeType === Node.TEXT_NODE) {
+		return true;
+	}
+
+	if (options.fragmentables && node.nodeType === Node.ELEMENT_NODE) {
+		let style = getStyle(node);
+
+		if (node.matches(options.fragmentables) && style.break_inside !== "avoid") {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+export function isShiftable (node, options) {
+	if (node.nodeType !== Node.ELEMENT_NODE) {
+		return false;
+	}
+
+	return node.matches(options.shiftables);
+}
