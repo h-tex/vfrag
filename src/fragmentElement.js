@@ -12,9 +12,9 @@ const fixup = {
 	}
 }
 
-export default function fragmentElement (original, nodes) {
+export default function fragmentElement (original, consumed) {
 	let fragment = original.cloneNode(false);
-	fragment.append(...nodes);
+	fragment.append(...consumed.nodes);
 
 	// Keep track
 	fragment.fragmentedFrom = original;
@@ -32,7 +32,7 @@ export default function fragmentElement (original, nodes) {
 	original.fragments.push(fragment);
 
 	// Add styling/script hooks
-	fragment.classList.add("fragment")
+	fragment.classList.add("fragment", "breaker-" + (consumed.breaker || "unknown"));
 	fragment.classList.remove("source");
 
 	let fragmentIndex = original.fragments.length;
@@ -51,7 +51,7 @@ export default function fragmentElement (original, nodes) {
 	// Special handling for certain elements
 	for (let selector in fixup) {
 		if (fragment.matches(selector)) {
-			fixup[selector](original, fragment, nodes);
+			fixup[selector](original, fragment, consumed.nodes);
 		}
 	}
 

@@ -47,10 +47,11 @@ export default async function paginate (container, options = {}) {
 		page.classList.add("pagination-done");
 	}
 
-	function fragmentPage ({ nodes, emptyLines }) {
+	function fragmentPage (consumed) {
+		let { emptyLines } = consumed;
 		options.totals.timer.start();
 
-		let newPage = fragmentElement(container, nodes);
+		let newPage = fragmentElement(container, consumed);
 
 		info.empty_lines.push(emptyLines);
 		newPage.style.setProperty("--empty-lines", emptyLines);

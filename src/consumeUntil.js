@@ -36,6 +36,9 @@ export default async function consumeUntil (target_content_height, container, op
 	// Element being shifted down
 	let shiftable;
 
+	// Reason for stopping
+	let breaker;
+
 	function fitsWhole (child) {
 		nodes.push(child);
 
@@ -61,6 +64,7 @@ export default async function consumeUntil (target_content_height, container, op
 			// We’re shifting a node down to make space, should we stop?
 			if (child.matches(shiftables)) {
 				// Can't shift beyond another shiftable
+				breaker = "shiftable-shiftable";
 				break;
 			}
 		}
@@ -78,6 +82,7 @@ export default async function consumeUntil (target_content_height, container, op
 
 				if (level <= shiftableLevel) {
 					// Can't shift to a different section, what is this, LaTeX?
+					breaker = "shiftable-heading";
 					break;
 				}
 			}
@@ -88,6 +93,7 @@ export default async function consumeUntil (target_content_height, container, op
 
 		if (style) {
 			if (i > 0 && style.break_before === "always") {
+				breaker = "break-before-always";
 				break;
 			}
 
@@ -106,6 +112,7 @@ export default async function consumeUntil (target_content_height, container, op
 
 		if (fitsWhole(child)) {
 			if (style?.break_after === "always") {
+				breaker = "break-after-always";
 				break;
 			}
 			else if (style?.break_after === "avoid") {
@@ -115,6 +122,7 @@ export default async function consumeUntil (target_content_height, container, op
 
 			if (nodes.height >= target_content_height) {
 				// We've reached the target height, no need to process further
+				breaker = "full";
 				break;
 			}
 		}
@@ -148,14 +156,17 @@ export default async function consumeUntil (target_content_height, container, op
 
 					if (child_lines >= 3.99) {
 						child.normalize();
-						let {nodes: children} = await consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options);
+						let consumed = await consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options);
 
-						if (children.length > 0) {
-							let remaining = [...child.childNodes].slice(children.length);
+						if (consumed.nodes.length > 0) {
+							// Why not just depend on the height calculation?
+							// Because some types of fragmentation produce fragments that have a certain minimum height anyway,
+							// e.g. fragmenting <details> produces another <summary> too
+							let remaining = [...child.childNodes].slice(consumed.nodes.length);
 
-							if (children.lengthStrong > 0 && remaining.filter(isNotBlank).length > 0) {
+							if (consumed.nodes.lengthStrong > 0 && remaining.filter(isNotBlank).length > 0) {
 								// child.classList.add("mark");
-								let fragment = fragmentElement(child, children);
+								let fragment = fragmentElement(child, consumed);
 
 								last_node_style = null;
 								nodes.push(fragment);
@@ -181,6 +192,7 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 
 			// If we've reached the point of fragmenting a node, we definitely can't fit more
+			breaker = "fragmentation";
 			break;
 		}
 	}
@@ -209,6 +221,6 @@ export default async function consumeUntil (target_content_height, container, op
 	let empty = Math.max(0, remaining_height);
 	let emptyLines = empty / lh;
 
-	return { nodes, empty, emptyLines };
+	return { nodes, empty, emptyLines, breaker };
 }
 
