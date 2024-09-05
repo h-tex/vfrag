@@ -4,13 +4,6 @@ import fragmentElement from "./fragmentElement.js";
 export const DEFAULT_FRAGMENTABLES = "ol, ul, dl, div, p, details, section, .fragmentable";
 export const DEFAULT_SHIFTABLES = "figure:not(.dont-shift), .shiftable";
 
-function isBlank (node) {
-	return node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "";
-}
-
-function isNotBlank (node) {
-	return !isBlank(node);
-}
 
 /**
  * Return an array of child nodes (or parts thereof) that fit within the target height.
@@ -45,8 +38,8 @@ export default async function consumeUntil (target_content_height, container, op
 	for (let i = 0; i < container.childNodes.length; i++) {
 		let child = container.childNodes[i];
 
-		if (child.nodeType === Node.COMMENT_NODE || isBlank(child)) {
-			// Skip comment nodes and empty text nodes
+		if (!util.affectsLayout(child)) {
+			// Comment nodes, empty text nodes, positioned or hidden elements etc.
 			nodes.pushWeak(child);
 			continue;
 		}
@@ -85,14 +78,6 @@ export default async function consumeUntil (target_content_height, container, op
 			if (i > 0 && style.break_before === "always") {
 				breaker = "break-before-always";
 				break;
-			}
-
-			if (["absolute", "fixed"].includes(style.position)
-				|| style.display === "none"
-			) {
-				// These do not affect layout
-				nodes.pushWeak(child);
-				continue;
 			}
 		}
 
@@ -166,7 +151,7 @@ export default async function consumeUntil (target_content_height, container, op
 							// e.g. fragmenting <details> produces another <summary> too
 							let remaining = [...child.childNodes].slice(consumed.nodes.length);
 
-							if (consumed.nodes.lengthStrong > 0 && remaining.filter(isNotBlank).length > 0) {
+							if (consumed.nodes.lengthStrong > 0 && remaining.filter(util.affectsLayout).length > 0) {
 								// child.classList.add("mark");
 								let fragment = fragmentElement(child, consumed);
 

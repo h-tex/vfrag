@@ -17,7 +17,8 @@ export function getInnerHeight (outerHeight, style) {
 	}
 }
 
-export { default as getStyle } from "./util/getStyle.js";
+import getStyle from "./util/getStyle.js";
+export { getStyle };
 
 function findHighestValue (low, high, f, upperBound) {
 	let left = low;
@@ -99,5 +100,23 @@ export function timer () {
 }
 
 export { default as ready } from "./util/ready.js";
-
 export { default as NodeStack } from "./util/NodeStack.js";
+
+/** Nodes that do not affect layout */
+export function affectsLayout (node) {
+	if (!node || node.nodeType === Node.COMMENT_NODE) {
+		return false;
+	}
+
+	if (node.nodeType === Node.TEXT_NODE) {
+		return node.textContent.trim() === "";
+	}
+
+	let style = getStyle(node);
+
+	if (["absolute", "fixed"].includes(style.position) || style.display === "none") {
+		return false;
+	}
+
+	return true;
+}
