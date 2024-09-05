@@ -17,6 +17,7 @@ let H1_to = Object.fromEntries(Array.from({length: 6}, (_, i) => ["H" + (i + 1),
 export default async function consumeUntil (target_content_height, container, options = {}) {
 	options.fragmentables ??= DEFAULT_FRAGMENTABLES;
 	options.shiftables ??= DEFAULT_SHIFTABLES;
+	options.startAt ??= 0;
 
 	const nodes = new util.NodeStack(container);
 
@@ -26,9 +27,6 @@ export default async function consumeUntil (target_content_height, container, op
 	let container_style = util.getStyle(container);
 	let lh = container_style.line_height;
 
-	// Element being shifted down
-	let shiftable;
-
 	// Reason for stopping
 	let breaker;
 
@@ -36,19 +34,26 @@ export default async function consumeUntil (target_content_height, container, op
 		container.style.textWrap = "initial";
 	}
 
-	for (let i = 0; i < container.childNodes.length; i++) {
+	for (let i = options.startAt; i < container.childNodes.length; i++) {
 		let child = container.childNodes[i];
+
+		if (options.stopAt) {
+			if (i >= options.stopAt) {
+				// Stop at index
+				breaker = "stop-at";
+				break;
+			}
+			else if (typeof options.stopAt === "function" && options.stopAt(child, i, container)) {
+				// Stop at callback
+				breaker = "stop-at";
+				break;
+			}
+		}
 
 		if (!util.affectsLayout(child)) {
 			// Comment nodes, empty text nodes, positioned or hidden elements etc.
 			nodes.pushWeak(child);
 			continue;
-		}
-
-		if (shiftable && util.isShiftable(child, options)) {
-			// Can't shift beyond another shiftable
-			breaker = "shiftable-shiftable";
-			break;
 		}
 
 		if (H1_to.H6.test(child.nodeName)) {
@@ -58,16 +63,6 @@ export default async function consumeUntil (target_content_height, container, op
 				options.openHeadings.pop();
 			}
 			options.openHeadings.push(child);
-
-			if (shiftable) {
-				let shiftableLevel = shiftable._heading ? Number(shiftable._heading.nodeName[1]) : 0;
-
-				if (level <= shiftableLevel) {
-					// Can't shift to a different section, what is this, LaTeX?
-					breaker = "shiftable-heading";
-					break;
-				}
-			}
 		}
 
 		let style = util.getStyle(child);
@@ -164,7 +159,7 @@ export default async function consumeUntil (target_content_height, container, op
 			breaker = "fragmentation";
 			break;
 		}
-		else if (nodes.lengthStrong === 0) {
+		else if (nodes.height === 0) {
 			// This is an item that is larger than the available space by itself and can't be fragmented
 			// Take it because it has to go somewhere but don’t try to fit anything else
 			nodes.push(child);
@@ -176,30 +171,93 @@ export default async function consumeUntil (target_content_height, container, op
 		}
 		else if (util.isShiftable(child, options)) {
 			// This element can be shifted up/down, i.e. doesn’t depend on the content flow
-			// We only shift when it’s not the first element in the page (which is taken care of by the previous condition)
-			// TODO try shifting up
-			shiftable = child;
-			child._heading = options.openHeadings?.at(-1);
-			child._nextSibling = child.nextSibling;
-			child.remove();
-		}
-	}
+			// We only shift when it’s not the first (layout-affecting) node in the page (which is taken care of by the previous condition)
 
-	if (shiftable) {
-		// Restore the shiftable node
-		let lastNode = nodes.lastStrong;
+			// Should we shift it up or down? Let’s examine both and see what produces better results.
 
-		if (lastNode) {
-			lastNode.after(shiftable);
-			nodes.popWeak();
-		}
-		else {
-			// No nodes were added, put it back where it was
-			shiftable._nextSibling.before(shiftable);
-		}
+			// We cannot shift it up beyond its heading, or another shiftable
+			let heading = options.openHeadings?.at(-1);
+			let minIndex = nodes.findLastIndex((n, i) => i === 0 || n === heading || n.matches?.(options.shiftables));
 
-		// Reparenting will force it to reload which can throw off future measurements
-		await util.ready(shiftable, {force: true});
+			let height = util.getHeight(child, {force: true});
+
+			// Try shifting up first
+			let up = {};
+			up.index = Math.max(minIndex, nodes.indexOfHeight(target_content_height - height));
+
+			up.go = minIndex < up.index && up.index < nodes.length;
+			up.next = up.go ? nodes.find((n, j) => j > up.index && util.affectsLayout(n)) : undefined;
+			up.go &&= Boolean(up.next);
+
+			let consumeOptions = {
+				...options,
+				startAt: i + 1,
+				// We cannot shift beyond a heading with level <= of heading or another shiftable
+				stopAt: n => H1_to[heading.nodeName].test(n.nodeName) || util.isShiftable(n, options),
+			};
+
+			if (up.go) {
+				// We can shift it up
+				up.emptySpace = target_content_height - nodes.heightAt(up.index) - height;
+
+				if (up.emptySpace > 1) {
+					// We may still need to fragment something
+					up.consumed = await consumeUntil(up.emptySpace, container, consumeOptions);
+				}
+			}
+			else {
+				up.emptySpace = Infinity;
+			}
+
+			// Now try shifting down
+			let down = {};
+
+			down.emptySpace = target_content_height - nodes.height - height;
+			down.consumed = await consumeUntil(down.emptySpace, container, consumeOptions);
+			down.go = down.consumed.nodes.length > 0;
+
+			if (down.go) {
+				down.emptySpace -= down.consumed.nodes.height;
+			}
+			else {
+				down.emptySpace = Infinity;
+			}
+
+			if (!(up.go || down.go)) {
+				// Shifting is not an option
+				breaker = "no-shift";
+				break;
+			}
+
+			console.log(up.emptySpace , down.emptySpace, child)
+
+			// Is shifting up better?
+			let shift = up.emptySpace < down.emptySpace ? up : down;
+			if (shift === up) {
+				while (nodes.length > up.index) {
+					nodes.pop();
+				}
+				nodes.last.after(child);
+				nodes.push(child);
+
+			}
+			else {
+				// Shift down (i.e. to next page)
+				down.consumed.nodes.last.after(child);
+			}
+
+			if (shift.consumed.nodes.length > 0) {
+				nodes.append(shift.consumed.nodes);
+				breaker = shift.consumed.breaker;
+			}
+			else {
+				breaker = "shift";
+			}
+
+			// Reparenting will force it to reload which can throw off future measurements
+			await util.ready(child, {force: true});
+			break;
+		}
 	}
 
 	nodes.popWeak();

@@ -17,8 +17,7 @@ export default class NodeStack extends Array {
 
 		if (this.container) {
 			this.range = this.container.ownerDocument.createRange();
-			this.range.setStart(container, 0);
-			this.range.setEnd(container, 0);
+			this.#update();
 		}
 
 		this.#lengthStrong = 0;
@@ -51,31 +50,51 @@ export default class NodeStack extends Array {
 		return this.heightAt(-1);
 	}
 
-	heightAt (nodeOrIndex) {
-		let index = nodeOrIndex > 0 ? nodeOrIndex : nodeOrIndex < 0 ? this.length + nodeOrIndex : this.indexOf(nodeOrIndex);
-		let node = this[index];
+	heightAt (relativeIndex) {
+		let index = relativeIndex < 0 ? this.length + relativeIndex : relativeIndex < this.length ? relativeIndex : -1;
 
-		if (!node) {
-			throw new Error("Node not in stack:", nodeOrIndex);
+		if (index === -1) {
+			throw new Error(`Cannot resolve index ${relativeIndex} in array of length ${this.length}`);
 		}
+
+		let node = this[index];
 
 		if (this.heights[index] === undefined) {
 			// We need to calculate it
+			if (!this.range) {
+				console.log(this.arg)
+			}
 			this.range.setEndAfter(node);
 			this.heights[index] = this.range.getBoundingClientRect().height;
-			this.#update();
+			this.#update(); // restore range
 		}
 
 		return this.heights[index];
 	}
 
+	/**
+	 * Find the last index that gives us a total height <= maxHeight
+	 */
+	indexOfHeight (maxHeight) {
+		for (let i = this.length - 1; i >= 0; i--) {
+			if (this.heightAt(i) <= maxHeight) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
 	#update () {
-		if (this.last) {
-			this.range.setEndAfter(this.last);
-		}
-		else {
+		if (this.length === 0) {
+			// Clear range start and end
+			this.range.setStart(this.container, 0);
 			this.range.setEnd(this.container, 0);
+			return;
 		}
+
+		this.range.setStartBefore(this[0]);
+		this.range.setEndAfter(this.last);
 	}
 
 	pushWeak (...nodes) {
@@ -121,5 +140,24 @@ export default class NodeStack extends Array {
 		this.#update();
 
 		return ret;
+	}
+
+	splice (start, deleteCount, ...nodes) {
+		let weak = this.weak.splice(start, deleteCount, ...nodes.map(_ => false));
+		this.heights.splice(start, deleteCount, ...nodes.map(_ => undefined));
+		let ret = super.splice(start, deleteCount, ...nodes);
+		ret.weak = weak;
+
+		this.#lengthStrong += nodes.length - weak.filter(w => !w).length;
+		this.#update();
+		return ret;
+	}
+
+	append (nodeStack) {
+		this.push(...nodeStack);
+		this.weak.push(...nodeStack.weak);
+		this.heights.push(...nodeStack.weak.map(_ => undefined));
+		this.#lengthStrong += nodeStack.lengthStrong;
+		this.#update();
 	}
 }
