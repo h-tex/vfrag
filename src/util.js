@@ -90,15 +90,6 @@ export function findMaxOffset (node, range, target_content_height) {
 	return bestOffset;
 }
 
-export function getId (id, {page, fragment}) {
-	if (fragment === 1) {
-		return id;
-	}
-
-	// TODO check if unique?
-	return id + "-" + fragment;
-}
-
 export function nextFrame () {
 	if (document.hidden) {
 		// rAF doesn’t run when the document is hidden

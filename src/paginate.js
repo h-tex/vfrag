@@ -33,9 +33,6 @@ export default async function paginate (container, options = {}) {
 		options.root.style.setProperty("--page-count", options.totals.pages);
 		options.root.style.setProperty("--pages", `"${options.totals.pages}"`);
 
-		// Make a new id (the old one will be duplicate)
-		page.id = util.getId(id, {number, fragment});
-
 		// Add page number
 		page.dataset.page = number;
 

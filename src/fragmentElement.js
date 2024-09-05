@@ -23,6 +23,10 @@ export default function fragmentElement (original, nodes) {
 		// This is the first fragment
 		original.fragments = [];
 		original.classList.add("source");
+
+		if (original.id) {
+			original.dataset.originalId = original.id;
+		}
 	}
 
 	original.fragments.push(fragment);
@@ -30,10 +34,19 @@ export default function fragmentElement (original, nodes) {
 	// Add styling/script hooks
 	fragment.classList.add("fragment")
 	fragment.classList.remove("source");
-	fragment.dataset.fragment = original.fragments.length;
-	original.dataset.fragment = original.fragments.length + 1;
 
-	// TODO prevent duplicate ids
+	let fragmentIndex = original.fragments.length;
+	fragment.dataset.fragment = fragmentIndex;
+	original.dataset.fragment = fragmentIndex + 1;
+
+	// Prevent duplicate ids
+	if (original.dataset.originalId) {
+		// The first fragment kets to keep the id, whereas evey subsequent fragment gets a new id
+		let originalId = original.dataset.originalId;
+		fragment.id = fragmentIndex > 1 ? `${ originalId }-${ fragmentIndex }` : originalId;
+		// Yes this means we'll change this every time, but we can't know if this is the last invocation
+		original.id = `${ originalId }-${ fragmentIndex + 1 }`;
+	}
 
 	// Special handling for certain elements
 	for (let selector in fixup) {
