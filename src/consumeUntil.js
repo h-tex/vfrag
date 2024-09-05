@@ -43,18 +43,6 @@ export default async function consumeUntil (target_content_height, container, op
 		container.style.textWrap = "initial";
 	}
 
-	function fitsWhole (child) {
-		nodes.push(child);
-
-		if (target_content_height >= nodes.height) {
-			return true;
-		}
-
-		// Adding this child node would exceed the target height, abort mission!
-		nodes.pop();
-		return false;
-	}
-
 	for (let i = 0; i < container.childNodes.length; i++) {
 		let child = container.childNodes[i];
 
@@ -114,7 +102,19 @@ export default async function consumeUntil (target_content_height, container, op
 		await util.ready(child);
 		options.totals.timer.start();
 
-		if (fitsWhole(child)) {
+		// Does it fit whole?
+		let fitsWhole = false;
+		nodes.push(child);
+
+		if (target_content_height >= nodes.height) {
+			fitsWhole = true;
+		}
+		else {
+			// Adding this child node would exceed the target height, abort mission!
+			nodes.pop();
+		}
+
+		if (fitsWhole) {
 			if (style?.break_after === "always") {
 				breaker = "break-after-always";
 				break;
