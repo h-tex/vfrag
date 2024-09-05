@@ -47,7 +47,7 @@ export default async function paginate (container, options = {}) {
 		page.classList.add("pagination-done");
 	}
 
-	function fragmentPage (nodes, emptyLines) {
+	function fragmentPage ({ nodes, emptyLines }) {
 		options.totals.timer.start();
 
 		let newPage = fragmentElement(container, nodes);
@@ -67,15 +67,15 @@ export default async function paginate (container, options = {}) {
 
 	for (; (w / (h = container.offsetHeight)) <= aspectRatio && h > min_page_height; page++) {
 		// Add nodes to the nodes array until the page is full
-		let {nodes, emptyLines} = await consumeUntil(target_content_height, container, options);
+		let consumed = await consumeUntil(target_content_height, container, options);
 
-		if (nodes.length === 0) {
+		if (consumed.nodes.length === 0) {
 			// This typically happens when there is a very large item that cannot be fragmented, e.g. a very large figure
 			// This is usually the first child, but not always, e.g. it may be preceded by an element with break-after: avoid
 			// such as a heading. Let’s just manually add until we find that item
 			// TODO handle this better, e.g. by making the item smaller
 			for (let child of container.childNodes) {
-				nodes.push(child);
+				consumed.nodes.push(child);
 
 				if (util.getHeight(child) > target_content_height) {
 					console.warn("Overly large element that can't be split:", child, `(${util.getHeight(child)} > ${target_content_height})`);
@@ -84,14 +84,14 @@ export default async function paginate (container, options = {}) {
 			}
 		}
 
-		if (nodes.length > 0) {
+		if (consumed.nodes.length > 0) {
 			options.totals.timer.pause();
 
 			if (doTransition) {
-				await document.startViewTransition(() => fragmentPage(nodes, emptyLines)).finished;
+				await document.startViewTransition(() => fragmentPage(consumed)).finished;
 			}
 			else {
-				await fragmentPage(nodes, emptyLines);
+				await fragmentPage(consumed);
 				await util.nextFrame();
 			}
 
