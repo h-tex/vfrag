@@ -29,7 +29,7 @@ export default async function consumeUntil (target_content_height, container, op
 	// Account for rounding errors
 	target_content_height++;
 
-	let container_style = util.getStyle(container, {pageBreak: false});
+	let container_style = util.getStyle(container);
 	let last_node_style;
 	let lh = container_style.line_height;
 
