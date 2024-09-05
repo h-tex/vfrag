@@ -39,6 +39,10 @@ export default async function consumeUntil (target_content_height, container, op
 	// Reason for stopping
 	let breaker;
 
+	if (container_style.text_wrap === "balance" || container_style.text_wrap === "pretty") {
+		container.style.textWrap = "initial";
+	}
+
 	function fitsWhole (child) {
 		nodes.push(child);
 
@@ -215,6 +219,12 @@ export default async function consumeUntil (target_content_height, container, op
 	}
 
 	nodes.popWeak();
+
+	if (container.style.textWrap === "initial") {
+		// Restore original value.
+		// ASSUMPTION text-wrap was not specified as an inline style.
+		container.style.textWrap = "";
+	}
 
 	let remaining_height = target_content_height - nodes.height;
 
