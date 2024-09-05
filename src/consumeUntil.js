@@ -1,8 +1,8 @@
 import * as util from "./util.js";
 import fragmentElement from "./fragmentElement.js";
 
-export const DEFAULT_FRAGMENTABLES = "ol, ul, dl, div, p, details, section";
-export const DEFAULT_SHIFTABLES = "figure:not(.dont-shift)";
+export const DEFAULT_FRAGMENTABLES = "ol, ul, dl, div, p, details, section, .fragmentable";
+export const DEFAULT_SHIFTABLES = "figure:not(.dont-shift), .shiftable";
 
 function isBlank (node) {
 	return node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "";
