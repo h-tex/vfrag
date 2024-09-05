@@ -109,7 +109,7 @@ export function affectsLayout (node) {
 	}
 
 	if (node.nodeType === Node.TEXT_NODE) {
-		return node.textContent.trim() === "";
+		return node.textContent.trim() !== "";
 	}
 
 	let style = getStyle(node);
