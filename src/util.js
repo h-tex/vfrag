@@ -100,6 +100,11 @@ export function getId (id, {page, fragment}) {
 }
 
 export function nextFrame () {
+	if (document.hidden) {
+		// rAF doesn’t run when the document is hidden
+		return new Promise(resolve => setTimeout(resolve, 16));
+	}
+
 	return new Promise(requestAnimationFrame);
 }
 
