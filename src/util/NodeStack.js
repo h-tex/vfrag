@@ -7,11 +7,20 @@ export default class NodeStack extends Array {
 	#lengthStrong;
 
 	constructor (container) {
-		super();
-		this.container = container;
-		this.range = container.ownerDocument.createRange();
-		this.range.setStart(container, 0);
-		this.range.setEnd(container, 0);
+		if (typeof container === "number") {
+			super(container);
+		}
+		else {
+			super();
+			this.container = container;
+		}
+
+		if (this.container) {
+			this.range = this.container.ownerDocument.createRange();
+			this.range.setStart(container, 0);
+			this.range.setEnd(container, 0);
+		}
+
 		this.#lengthStrong = 0;
 
 		// these shouldn't trigger anything by themselves, but should be taken along for the ride if a node after them gets moved
