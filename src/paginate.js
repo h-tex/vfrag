@@ -26,7 +26,7 @@ export default async function paginate (container, options = {}) {
 	 * @param {*} page
 	 * @param {*} param1
 	 */
-	function pageFinished (page, {number, fragment}) {
+	function pageFinished (page, number) {
 		// Update page stats
 		info.pages++;
 		options.totals.pages++;
@@ -51,7 +51,6 @@ export default async function paginate (container, options = {}) {
 		options.totals.timer.start();
 
 		let newPage = fragmentElement(container, nodes);
-		let fragment = container.fragments.length;
 
 		info.empty_lines.push(emptyLines);
 		newPage.style.setProperty("--empty-lines", emptyLines);
@@ -61,7 +60,7 @@ export default async function paginate (container, options = {}) {
 			newPage.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
 		}
 
-		pageFinished(newPage, {number: page, fragment});
+		pageFinished(newPage, page);
 
 		options.totals.timer.pause();
 	}
@@ -110,10 +109,7 @@ export default async function paginate (container, options = {}) {
 		}
 	}
 
-	pageFinished(container, {
-		number: page,
-		fragment: container.fragments?.length ?? 1,
-	});
+	pageFinished(container, page);
 
 	options.totals.empty_lines.push(...info.empty_lines);
 	options.totals.timer.pause();
