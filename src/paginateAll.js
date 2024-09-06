@@ -22,6 +22,8 @@ export default async function paginateAll (options = {}) {
 	}
 
 	options.root ??= document.documentElement;
+	options.askEvery ??= 200;
+
 	options.root.classList.add("paginated", "paginating");
 	let sections = options.sections ?? ".page";
 	sections = typeof sections === "string" ? options.root.querySelectorAll(sections) : sections;

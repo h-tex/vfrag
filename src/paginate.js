@@ -1,7 +1,7 @@
 import * as util from "./util.js";
 import consumeUntil from "./consumeUntil.js";
 import fragmentElement from "./fragmentElement.js";
-const MAX_PAGES = 600;
+
 const supportsViewTransitions = Boolean(document.startViewTransition);
 
 // Paginate by breaking down .page into multiple .page elements
@@ -103,9 +103,10 @@ export default async function paginate (container, options = {}) {
 			break;
 		}
 
-		if (page > MAX_PAGES) {
-			console.warn("Exceeded max page limit of ", MAX_PAGES);
-			break;
+		if (options.totals.pages > 0 && options.askEvery > 0 && options.totals.pages % options.askEvery === 0) {
+			if (!confirm(`Paginated ${ options.totals.pages } pages. Continue?`)) {
+				break;
+			}
 		}
 	}
 
