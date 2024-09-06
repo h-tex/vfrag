@@ -17,7 +17,7 @@ let H1_to = Object.fromEntries(Array.from({length: 6}, (_, i) => ["H" + (i + 1),
 export default async function consumeUntil (target_content_height, container, options = {}) {
 	options.fragmentables ??= DEFAULT_FRAGMENTABLES;
 	options.shiftables ??= DEFAULT_SHIFTABLES;
-	options.startAt ??= 0;
+	options.startAtIndex ??= 0;
 
 	const nodes = new util.NodeStack(container);
 
@@ -34,7 +34,7 @@ export default async function consumeUntil (target_content_height, container, op
 		container.style.textWrap = "initial";
 	}
 
-	for (let i = options.startAt; i < container.childNodes.length; i++) {
+	for (let i = options.startAtIndex; i < container.childNodes.length; i++) {
 		let child = container.childNodes[i];
 
 		if (options.stopAt) {
@@ -191,7 +191,7 @@ export default async function consumeUntil (target_content_height, container, op
 
 			let consumeOptions = {
 				...options,
-				startAt: i + 1,
+				startAtIndex: i + 1,
 				// We cannot shift beyond a heading with level <= of heading or another shiftable
 				stopAt: n => H1_to[heading?.nodeName]?.test(n.nodeName) || util.isShiftable(n, options),
 			};
