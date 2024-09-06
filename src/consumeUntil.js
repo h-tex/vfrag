@@ -1,7 +1,7 @@
 import * as util from "./util.js";
 import fragmentElement from "./fragmentElement.js";
 
-export const DEFAULT_FRAGMENTABLES = "ol, ul, dl, div, p, details, section, .fragmentable";
+export const DEFAULT_FRAGMENTABLES = "ol, ul, dl, div, p, pre, code, details, section, .fragmentable";
 export const DEFAULT_SHIFTABLES = "figure:not(.dont-shift), .shiftable";
 
 let H1_to = Object.fromEntries(Array.from({length: 6}, (_, i) => ["H" + (i + 1), i === 0 ? /^H1$/ : RegExp(`^H[1-${ (i + 1) }]$`)]));
