@@ -129,14 +129,13 @@ export default async function consumeUntil (target_content_height, container, op
 				let remaining_height = target_content_height - nodes.height;
 				let empty_lines = remaining_height / lh;
 
-				// TODO use CSS widows and orphans rather than these hardcoded values
-				if (empty_lines >= 2) {
+				if (empty_lines >= style.orphans) {
 					let child_height = util.getHeight(child, {force: true});
 					let child_lines = child_height / lh;
 
-					if (child_lines >= 3.99) {
+					if (child_lines >= style.orphans + style.widows - .01) {
 						child.normalize();
-						let consumed = await consumeUntil(Math.min(remaining_height, child_height - 2 * lh), child, options);
+						let consumed = await consumeUntil(Math.min(remaining_height, child_height - style.widows * lh), child, options);
 
 						if (consumed.nodes.length > 0) {
 							// Why not just depend on the height calculation?

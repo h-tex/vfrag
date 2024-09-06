@@ -1,6 +1,6 @@
 const styles = new WeakMap();
 const categoricalProperties = ["position", "display", "box-sizing", "page-break-before", "page-break-inside", "page-break-after", "text-wrap"];
-const numericalProperties = ["padding-block-start", "padding-block-end", "min-height", "line-height"];
+const numericalProperties = ["padding-block-start", "padding-block-end", "min-height", "line-height", "orphans", "widows"];
 
 export default function getStyle (node) {
 	if (!node || node instanceof Node && node.nodeType !== 1) {
