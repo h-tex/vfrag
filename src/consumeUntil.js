@@ -136,7 +136,13 @@ export default async function consumeUntil (target_content_height, container, op
 
 					if (child_lines >= style.orphans + style.widows - .01) {
 						child.normalize();
-						let consumed = await consumeUntil(Math.min(remaining_height, child_height - style.widows * lh), child, options);
+
+						let max_fragment_height = Math.min(remaining_height, child_height - style.widows * lh);
+						let consumeOptions = {
+							...options,
+							startAtIndex: 0,
+						};
+						let consumed = await consumeUntil(max_fragment_height, child, consumeOptions);
 
 						if (consumed.nodes.length > 0) {
 							// Why not just depend on the height calculation?
