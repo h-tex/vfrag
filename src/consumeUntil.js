@@ -176,15 +176,15 @@ export default async function consumeUntil (target_content_height, container, op
 
 			// We cannot shift it up beyond its heading, or another shiftable
 			let heading = options.openHeadings?.at(-1);
-			let minIndex = nodes.findLastIndex((n, i) => i === 0 || n === heading || n.matches?.(options.shiftables));
+			let minIndex = nodes.findLastIndex((n, i) => n === heading || n.matches?.(options.shiftables));
 
 			let height = util.getHeight(child, {force: true});
 
 			// Try shifting up first
 			let up = {};
-			up.index = Math.max(minIndex, nodes.indexOfHeight(target_content_height - height));
+			up.index = Math.max(0, minIndex, nodes.indexOfHeight(target_content_height - height));
 
-			up.go = minIndex < up.index && up.index < nodes.length;
+			up.go = up.index < nodes.length;
 
 			let consumeOptions = {
 				...options,
@@ -202,9 +202,6 @@ export default async function consumeUntil (target_content_height, container, op
 					up.consumed = await consumeUntil(up.emptySpace, container, consumeOptions);
 				}
 			}
-			else {
-				up.emptySpace = Infinity;
-			}
 
 			// Now try shifting down
 			let down = {};
@@ -216,9 +213,6 @@ export default async function consumeUntil (target_content_height, container, op
 			if (down.go) {
 				down.emptySpace -= down.consumed.nodes.height;
 			}
-			else {
-				down.emptySpace = Infinity;
-			}
 
 			if (!(up.go || down.go)) {
 				// Shifting is not an option
@@ -227,14 +221,26 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 
 			// Is shifting up better?
-			let shift = up.emptySpace < down.emptySpace ? up : down;
+			let shift = up.go && (!down.go || up.emptySpace < down.emptySpace) ? up : down;
 			let shiftNodes = Number(child.dataset.shift || 0);
+
 			if (shift === up) {
+				let firstNode = nodes[0];
 				shiftNodes -= (nodes.length - up.index);
+
 				while (nodes.length > up.index) {
 					nodes.pop();
 				}
-				nodes.last.after(child);
+
+				if (nodes.last) {
+					nodes.last.after(child);
+				}
+				else {
+					// Shifting up would make it the first node on the page
+					// Insert it before the last node we removed
+					firstNode.before(child);
+				}
+
 				nodes.push(child);
 
 			}
@@ -243,7 +249,7 @@ export default async function consumeUntil (target_content_height, container, op
 				down.consumed.nodes.last.after(child);
 			}
 
-			if (shift.consumed.nodes.length > 0) {
+			if (shift.consumed?.nodes.length > 0) {
 				shiftNodes += shift.consumed.nodes.length;
 				nodes.append(shift.consumed.nodes);
 				breaker = shift.consumed.breaker;
