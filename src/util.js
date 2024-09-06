@@ -1,24 +1,10 @@
-// NOTE These don't take borders into account
-export function getOuterHeight (innerHeight, style) {
-	if (style.box_sizing === "border-box") {
-		return innerHeight;
-	}
-	else if (style.box_sizing === "content-box") {
-		return innerHeight + style.padding_block_start + style.padding_block_end;
-	}
-}
-
-export function getInnerHeight (outerHeight, style) {
-	if (style.box_sizing === "border-box") {
-		return outerHeight - (style.padding_block_start + style.padding_block_end);
-	}
-	else if (style.box_sizing === "content-box") {
-		return outerHeight;
-	}
-}
-
 import getStyle from "./util/getStyle.js";
 export { getStyle };
+
+// NOTE doesn't take borders into account
+export function getInnerHeight (outerHeight, style) {
+	return outerHeight - (style.padding_block_start + style.padding_block_end);
+}
 
 function findHighestValue (low, high, f, upperBound) {
 	let left = low;

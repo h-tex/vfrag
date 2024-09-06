@@ -1,7 +1,7 @@
 
 export default class Timer {
-	constructor () {
-		this.total = 0;
+	constructor (total = 0) {
+		this.total = total;
 	}
 
 	get currentTime () {
@@ -10,6 +10,14 @@ export default class Timer {
 
 	get running () {
 		return this.startTime !== undefined;
+	}
+
+	toString () {
+		return Timer.formatMs(this.valueOf());
+	}
+
+	valueOf () {
+		return this.total + this.currentTime;
 	}
 
 	start () {
@@ -24,20 +32,20 @@ export default class Timer {
 
 	end () {
 		this.pause();
-		return formatDuration(this.total);
-	}
-}
-
-export function formatDuration (ms) {
-	if (ms < 1000) {
-		return (ms < 1 ? +ms.toPrecision(2) : Math.round(ms)) + " ms";
+		return this.toString();
 	}
 
-	let seconds = ms / 1000;
-	if (seconds < 60) {
-		return +seconds.toFixed(1) + " s";
-	}
+	static formatMs (ms) {
+		if (ms < 1000) {
+			return (ms < 1 ? +ms.toPrecision(2) : Math.round(ms)) + " ms";
+		}
 
-	let minutes = seconds / 60;
-	return +minutes.toFixed(1) + " min";
+		let seconds = ms / 1000;
+		if (seconds < 60) {
+			return +seconds.toFixed(1) + " s";
+		}
+
+		let minutes = seconds / 60;
+		return +minutes.toFixed(1) + " min";
+	}
 }

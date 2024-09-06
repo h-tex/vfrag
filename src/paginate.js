@@ -2,124 +2,109 @@ import * as util from "./util.js";
 import consumeUntil from "./consumeUntil.js";
 import fragmentElement from "./fragmentElement.js";
 
-const supportsViewTransitions = Boolean(document.startViewTransition);
+
 
 // Paginate by breaking down .page into multiple .page elements
 export default async function paginate (container, options = {}) {
-	let info = {pages: 1, empty_lines: []};
+	let info = { pages: 1, empty_lines: [] };
+
 	if (options.stopped) {
 		return info;
 	}
 
-	options.totals ??= {pages: 0, timer: new util.Timer(), asyncTimer: util.timer(), empty_lines: []};
-	options.totals.timer.start();
+	let totals = options.totals ??= {pages: 0, empty_lines: []};
+	let timers = options.timers ??= {consume: new util.Timer(), DOM: new util.Timer(), async: new util.Timer() };
+	let aspectRatio = options.aspectRatio ??= 8.5/11;
 
-	let {startAt = options.totals.pages + 1, aspectRatio = 8.5/11} = options;
-	let w = container.offsetWidth;
+	timers.consume.start();
+
+	let {width, height} = container.getBoundingClientRect();
 	let style = util.getStyle(container);
-	let min_page_height = Math.ceil(util.getOuterHeight(style.min_height, style));
-	let target_page_height = w / aspectRatio;
+	let target_page_height = width / aspectRatio;
 	let target_content_height = util.getInnerHeight(target_page_height, style);
-	let h;
-	let page = startAt;
+	let remaining_content_height = util.getInnerHeight(height, style);
+	let nodesProcessed = 0;
+	let pages = [];
 
-	let doTransition = options.animation && supportsViewTransitions;
-
-	/**
-	 * Add page number, and empty content
-	 * @param {*} page
-	 * @param {*} param1
-	 */
-	function pageFinished (page, number) {
-		// Update page stats
-		info.pages++;
-		options.totals.pages++;
-		options.root.style.setProperty("--page-count", options.totals.pages);
-		options.root.style.setProperty("--pages", `"${options.totals.pages}"`);
-
-		// Add page number
-		page.dataset.page = number;
-
-		let pageNumber = Object.assign(document.createElement("a"), {
-			href: "#" + page.id,
-			className: "page-number",
-			textContent: number,
-		});
-
-		page.append(pageNumber);
-
-		page.classList.add("pagination-done");
-	}
-
-	function fragmentPage (consumed) {
-		let { emptyLines } = consumed;
-		options.totals.timer.start();
-
-		let newPage = fragmentElement(container, consumed);
-
-		info.empty_lines.push(emptyLines);
-		newPage.style.setProperty("--empty-lines", emptyLines);
-		newPage.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
-
-		if (emptyLines > 2.5) {
-			newPage.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
-		}
-
-		pageFinished(newPage, page);
-
-		options.totals.timer.pause();
-	}
-
-	for (; (w / (h = container.offsetHeight)) <= aspectRatio && h > min_page_height; page++) {
+	while (remaining_content_height > target_content_height) {
 		// Add nodes to the nodes array until the page is full
+		options.startAtIndex = nodesProcessed;
+		options.asyncTimer = timers.async;
 		let consumed = await consumeUntil(target_content_height, container, options);
 
-		if (consumed.nodes.length === 0) {
-			// This typically happens when there is a very large item that cannot be fragmented, e.g. a very large figure
-			// This is usually the first child, but not always, e.g. it may be preceded by an element with break-after: avoid
-			// such as a heading. Let’s just manually add until we find that item
-			// TODO handle this better, e.g. by making the item smaller
-			for (let child of container.childNodes) {
-				consumed.nodes.push(child);
-
-				if (util.getHeight(child) > target_content_height) {
-					console.warn("Overly large element that can't be split:", child, `(${util.getHeight(child)} > ${target_content_height})`);
-					break;
-				}
-			}
-		}
-
 		if (consumed.nodes.length > 0) {
-			options.totals.timer.pause();
-
-			if (doTransition) {
-				await document.startViewTransition(() => fragmentPage(consumed)).finished;
-			}
-			else {
-				await fragmentPage(consumed);
-				await util.nextFrame();
-			}
-
-			options.totals.timer.start();
+			pages.push(consumed);
+			nodesProcessed += consumed.nodes.length;
+			remaining_content_height -= consumed.nodes.height;
 		}
 		else {
-			h = container.offsetHeight;
-			console.warn("Cannot paginate", container, ". Height: ", h , ">", min_page_height);
+			let approx_pages_left = Math.ceil(remaining_content_height / target_content_height);
+			console.warn("Cannot paginate", container, pages.length > 0 ? ` further (${pages.length} pages done, ~${ approx_pages_left } left)` : `(~${ approx_pages_left } pages left)`);
 			break;
 		}
 
-		if (options.totals.pages > 0 && options.askEvery > 0 && options.totals.pages % options.askEvery === 0) {
-			if (!confirm(`Paginated ${ options.totals.pages } pages. Continue?`)) {
+		if (totals.pages > 0 && options.askEvery > 0 && totals.pages % options.askEvery === 0) {
+			if (!confirm(`Paginated ${ totals.pages } pages. Continue?`)) {
 				options.stopped = true;
 				break;
 			}
 		}
 	}
 
-	pageFinished(container, page);
+	timers.consume.pause();
+	timers.consume.total -= timers.async.total;
 
-	options.totals.empty_lines.push(...info.empty_lines);
-	options.totals.timer.pause();
+	// Now actually fragment the container (in a document fragment to avoid reflows)
+	timers.DOM.start();
+
+	// Save position in the DOM
+	let marker = document.createComment(`${ container.id ?? container.data.id ?? container.nodeName }`);
+	container.replaceWith(marker);
+
+	let docFragment = document.createDocumentFragment();
+	docFragment.append(container);
+
+	// Update page stats
+	info.pages = pages.length;
+	totals.pages += info.pages;
+
+	options.root.style.setProperty("--page-count", totals.pages);
+	options.root.style.setProperty("--pages", `"${totals.pages}"`);
+
+	let { startAt = totals.pages + 1 } = options;
+
+	for (let i = 0; i<pages.length; i++) {
+		let consumed = pages[i];
+		let page = container;
+
+		if (consumed !== pages.at(-1)) {
+			// Not the last page, create a new page
+			let { emptyLines } = consumed;
+			page = fragmentElement(container, consumed);
+
+			info.empty_lines.push(emptyLines);
+			page.style.setProperty("--empty-lines", emptyLines);
+			page.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
+
+			if (emptyLines > 2.5) {
+				page.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
+			}
+		}
+
+		// Add page number
+		let pageNumber = startAt + i;
+		page.style.setProperty("--page-number", pageNumber);
+		page.dataset.page = pageNumber;
+
+		page.insertAdjacentHTML("beforeend", `<a href="#${ page.id }" class="page-number">${ pageNumber }</a>`);
+
+		page.classList.add("pagination-done");
+	}
+
+	marker.replaceWith(docFragment);
+
+	totals.empty_lines.push(...info.empty_lines);
+	timers.DOM.pause();
 
 	return info;
 }

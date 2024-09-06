@@ -1,6 +1,8 @@
 import paginate from "./paginate.js";
 import * as util from "./util.js";
 
+const SUPPORTS_VIEW_TRANSITIONS = Boolean(document.startViewTransition);
+
 /**
  * @typedef {Object} PaginationStats
  * @property {number} pages - Number of pages
@@ -28,11 +30,23 @@ export default async function paginateAll (options = {}) {
 	let sections = options.sections ?? ".page";
 	sections = typeof sections === "string" ? options.root.querySelectorAll(sections) : sections;
 
+	await util.nextFrame();
+
 	for (let section of sections) {
-		await paginate(section, options);
+		if (SUPPORTS_VIEW_TRANSITIONS) {
+			await document.startViewTransition(() => paginate(section, options)).finished;
+		}
+		else {
+			await paginate(section, options);
+			await util.nextFrame();
+		}
 	}
 
-	console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ options.totals.timer.end() } (total: ${ options.totals.asyncTimer.end() }).`
+	let timers = options.timers;
+	let totalTime = new util.Timer(timers.consume + timers.DOM);
+	let totalTimeAsync = new util.Timer(totalTime + timers.async);
+
+	console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ totalTime } (total: ${ totalTimeAsync }, consume: ${ timers.consume }, DOM: ${ timers.DOM }).`
 	+ ` Empty lines: ${ util.average(options.totals.empty_lines)?.toLocaleString() } avg, ${ Math.max(...options.totals.empty_lines).toLocaleString() } max.`);
 	options.root.classList.remove("paginating");
 	options.root.classList.add("done");

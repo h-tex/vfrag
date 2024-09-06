@@ -74,9 +74,10 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 		}
 
-		options.totals.timer.pause();
+		let asyncTimer = options.asyncTimer ??= util.timer();
+		asyncTimer.start();
 		await util.ready(child);
-		options.totals.timer.start();
+		asyncTimer.pause();
 
 		// Does it fit whole?
 		let fitsWhole = false;
@@ -158,8 +159,9 @@ export default async function consumeUntil (target_content_height, container, op
 			breaker = "fragmentation";
 			break;
 		}
-		else if (nodes.height === 0) {
+		else if (nodes.height === 0 || nodes.lengthStrong === 0) {
 			// This is an item that is larger than the available space by itself and can't be fragmented
+			// This is usually the first child, but not always, e.g. it may be preceded by an element with break-after: avoid; such as a heading.
 			// Take it because it has to go somewhere but don’t try to fit anything else
 			nodes.push(child);
 
@@ -261,7 +263,9 @@ export default async function consumeUntil (target_content_height, container, op
 			child.dataset.shift = shiftNodes;
 
 			// Reparenting will force it to reload which can throw off future measurements
+			asyncTimer.start();
 			await util.ready(child, {force: true});
+			asyncTimer.end();
 			break;
 		}
 	}
