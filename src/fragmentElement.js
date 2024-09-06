@@ -1,4 +1,4 @@
-const fixup = {
+export const fixup = {
 	ol (original, fragment, nodes) {
 		// Continue <ol> from same number
 		let start = original.start || 1;
@@ -9,7 +9,7 @@ const fixup = {
 		// Clone <summary> if exists, or create one (so it can be hidden)
 		let summary = original.querySelector(":scope > summary")?.cloneNode(true) ?? document.createElement("summary");
 		fragment.prepend(summary);
-	}
+	},
 }
 
 export default function fragmentElement (original, consumed) {
