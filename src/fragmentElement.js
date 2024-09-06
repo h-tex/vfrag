@@ -22,7 +22,7 @@ export default function fragmentElement (original, consumed) {
 	if (!original.fragments) {
 		// This is the first fragment
 		original.fragments = [];
-		original.classList.add("source");
+		original.classList.add("fragment", "fragment-last");
 
 		if (original.id) {
 			original.dataset.originalId = original.id;
@@ -33,7 +33,7 @@ export default function fragmentElement (original, consumed) {
 
 	// Add styling/script hooks
 	fragment.classList.add("fragment", "breaker-" + (consumed.breaker || "unknown"));
-	fragment.classList.remove("source");
+	fragment.classList.remove("fragment-last");
 
 	let fragmentIndex = original.fragments.length;
 	fragment.dataset.fragment = fragmentIndex;
