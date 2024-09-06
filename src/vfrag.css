@@ -1,0 +1,42 @@
+/* To be used when printing from the paginated view.
+   We have already fragmented the content, so there should naturally be enough space,
+   so this prevents issues where a tiny amount of overflow causes the UA to create a new page.
+ */
+@page paginated {
+	margin-block-end: 0;
+}
+
+:where(:root).paginated {
+	page: paginated;
+}
+
+[data-page] {
+	/* A page */
+	position: relative;
+
+	&[data-page="1"] > .page-number {
+		/* No page number in the first page */
+		display: none;
+	}
+
+	> .page-number {
+		position: absolute;
+		bottom: 1lh;
+		left: 50%;
+		transform: translateX(-50%);
+		font-weight: bold;
+		font-size: 125%;
+		line-height: 1;
+		font-variant-numeric: diagonal-fractions;
+		letter-spacing: .1em;
+		text-decoration: none;
+		color: inherit;
+
+		&::after {
+			content: "/" var(--pages);
+			opacity: .6;
+			font-weight: 300;
+			font-size: 80%;
+		}
+	}
+}
