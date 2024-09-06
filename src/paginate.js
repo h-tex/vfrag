@@ -64,14 +64,14 @@ export default async function paginate (container, options = {}) {
 	let docFragment = document.createDocumentFragment();
 	docFragment.append(container);
 
+	let { startAt = totals.pages + 1 } = options;
+
 	// Update page stats
 	info.pages = pages.length;
 	totals.pages += info.pages;
 
 	options.root.style.setProperty("--page-count", totals.pages);
 	options.root.style.setProperty("--pages", `"${totals.pages}"`);
-
-	let { startAt = totals.pages + 1 } = options;
 
 	for (let i = 0; i<pages.length; i++) {
 		let consumed = pages[i];
