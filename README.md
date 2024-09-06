@@ -100,6 +100,12 @@ The available options are:
 | `debug` | `boolean` | `false` | If true will output elements with `class=placeholder` that can be rendered to show empty space on each page. |
 | `verbose` | `boolean` | `false` | If true, will output additional info messages to the console. Note that this may slow things down a fair bit. |
 
+### `consumeUntil()` only
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `startAtIndex` | `number` | `0` | The index of the first child node to start at. |
+
 ## Limitations & Assumptions
 
 - Only simple values for `page-break-*` and `break-*` are supported (`auto`, `avoid` and `always`).
