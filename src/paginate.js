@@ -6,6 +6,11 @@ const supportsViewTransitions = Boolean(document.startViewTransition);
 
 // Paginate by breaking down .page into multiple .page elements
 export default async function paginate (container, options = {}) {
+	let info = {pages: 1, empty_lines: []};
+	if (options.stopped) {
+		return info;
+	}
+
 	options.totals ??= {pages: 0, timer: new util.Timer(), asyncTimer: util.timer(), empty_lines: []};
 	options.totals.timer.start();
 
@@ -17,7 +22,7 @@ export default async function paginate (container, options = {}) {
 	let target_content_height = util.getInnerHeight(target_page_height, style);
 	let h;
 	let page = startAt;
-	let info = {pages: 1, time: 0, empty_lines: []};
+
 	let doTransition = options.animation && supportsViewTransitions;
 
 	/**
@@ -105,6 +110,7 @@ export default async function paginate (container, options = {}) {
 
 		if (options.totals.pages > 0 && options.askEvery > 0 && options.totals.pages % options.askEvery === 0) {
 			if (!confirm(`Paginated ${ options.totals.pages } pages. Continue?`)) {
+				options.stopped = true;
 				break;
 			}
 		}
