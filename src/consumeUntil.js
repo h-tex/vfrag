@@ -230,7 +230,9 @@ export default async function consumeUntil (target_content_height, container, op
 
 			// Is shifting up better?
 			let shift = up.emptySpace < down.emptySpace ? up : down;
+			let shiftNodes = Number(child.dataset.shift || 0);
 			if (shift === up) {
+				shiftNodes -= (nodes.length - up.index);
 				while (nodes.length > up.index) {
 					nodes.pop();
 				}
@@ -244,12 +246,15 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 
 			if (shift.consumed.nodes.length > 0) {
+				shiftNodes += shift.consumed.nodes.length;
 				nodes.append(shift.consumed.nodes);
 				breaker = shift.consumed.breaker;
 			}
 			else {
 				breaker = "shift";
 			}
+
+			child.dataset.shift = shiftNodes;
 
 			// Reparenting will force it to reload which can throw off future measurements
 			await util.ready(child, {force: true});
