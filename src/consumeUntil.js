@@ -129,8 +129,8 @@ export default async function consumeUntil (target_content_height, container, op
 				let remaining_height = target_content_height - nodes.height;
 				let empty_lines = remaining_height / lh;
 
-				let orphaned_lines = child.style.orphans || 2; // Initial value: https://developer.mozilla.org/en-US/docs/Web/CSS/orphans#formal_definition
-				let widowed_lines = child.style.widows || 2; // Initial value: https://developer.mozilla.org/en-US/docs/Web/CSS/widows#formal_definition
+				let orphaned_lines = style.orphans;
+				let widowed_lines = style.widows;
 
 				if (empty_lines >= orphaned_lines) {
 					let child_height = util.getHeight(child, {force: true});
