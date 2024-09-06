@@ -10,6 +10,9 @@ It also makes it more heavyweight, as it has to refetch all CSS files.
 - Because it has to handle the general case, it is also a very complicated piece of work,
 and in the end I realized we had spent more time adding workarounds to our codebase to handle its quirks than I spent writing this.
 
+Furthermore, I wanted to do things CSS cannot currently express, such as:
+- Shift certain nodes that are not in flow (e.g. `<figure>`) earlier or later to minimize empty space at the bottom of pages.
+
 ## Requirements
 
 This is written with different requirements which likely make it unsuitable for many use cases.
