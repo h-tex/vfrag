@@ -185,8 +185,6 @@ export default async function consumeUntil (target_content_height, container, op
 			up.index = Math.max(minIndex, nodes.indexOfHeight(target_content_height - height));
 
 			up.go = minIndex < up.index && up.index < nodes.length;
-			up.next = up.go ? nodes.find((n, j) => j > up.index && util.affectsLayout(n)) : undefined;
-			up.go &&= Boolean(up.next);
 
 			let consumeOptions = {
 				...options,
