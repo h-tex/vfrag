@@ -228,8 +228,6 @@ export default async function consumeUntil (target_content_height, container, op
 				break;
 			}
 
-			console.log(up.emptySpace , down.emptySpace, child)
-
 			// Is shifting up better?
 			let shift = up.emptySpace < down.emptySpace ? up : down;
 			if (shift === up) {
