@@ -1,8 +1,6 @@
 import paginate from "./paginate.js";
 import * as util from "./util.js";
 
-const SUPPORTS_VIEW_TRANSITIONS = Boolean(document.startViewTransition);
-
 /**
  * @typedef {Object} PaginationStats
  * @property {number} pages - Number of pages
@@ -33,13 +31,7 @@ export default async function paginateAll (options = {}) {
 	await util.nextFrame();
 
 	for (let section of sections) {
-		if (SUPPORTS_VIEW_TRANSITIONS) {
-			await document.startViewTransition(() => paginate(section, options)).finished;
-		}
-		else {
-			await paginate(section, options);
-			await util.nextFrame();
-		}
+		await util.domChange(() => paginate(section, options));
 	}
 
 	let timers = options.timers;

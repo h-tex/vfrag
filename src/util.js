@@ -130,3 +130,14 @@ export function isShiftable (node, options) {
 
 	return node.matches(options.shiftables);
 }
+
+const SUPPORTS_VIEW_TRANSITIONS = Boolean(document.startViewTransition);
+export async function domChange (fn) {
+	if (SUPPORTS_VIEW_TRANSITIONS) {
+		return document.startViewTransition(fn).finished;
+	}
+	else {
+		await fn();
+		return util.nextFrame();
+	}
+}
