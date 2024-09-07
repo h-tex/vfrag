@@ -35,7 +35,7 @@ export function findMaxOffset (node, range, target_content_height) {
 	// Use binary search to find the *maximum* offset that gives the target height
 	let bestOffset = findHighestValue(0, node.textContent.length, mid => {
 		range.setEnd(node, mid);
-		return getHeight(range, {force: true});
+		return range.getBoundingClientRect().height;
 	}, target_content_height);
 ;
 
@@ -51,22 +51,6 @@ export function nextFrame () {
 	}
 
 	return new Promise(requestAnimationFrame);
-}
-
-const heights = new WeakMap();
-/**
- * Get an element or range’s bounding rect height and cache it
- * @param {Element | Range} element
- */
-export function getHeight (element, options) {
-	let height = heights.get(element);
-
-	if ((height === undefined || options?.force) && element.getBoundingClientRect) {
-		height = element.getBoundingClientRect().height;
-		heights.set(element, height);
-	}
-
-	return height;
 }
 
 export function average (arr) {

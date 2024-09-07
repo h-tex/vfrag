@@ -135,7 +135,7 @@ export default async function consumeUntil (target_content_height, container, op
 				let empty_lines = remaining_height / lh;
 
 				if (empty_lines >= style.orphans) {
-					let child_height = util.getHeight(child, {force: true});
+					let child_height = child.getBoundingClientRect().height;
 					let child_lines = child_height / lh;
 
 					if (child_lines >= style.orphans + style.widows - .01) {
@@ -175,7 +175,7 @@ export default async function consumeUntil (target_content_height, container, op
 			// Take it because it has to go somewhere but don’t try to fit anything else
 			nodes.push(child);
 
-			console.warn("Overly large element:", child, `(${util.getHeight(child, {force: 1})} > ${target_content_height})`);
+			console.warn("Overly large element:", child, `(${ child.getBoundingClientRect().height } > ${ target_content_height })`);
 
 			breaker = "oversized";
 			break;
@@ -190,7 +190,7 @@ export default async function consumeUntil (target_content_height, container, op
 			let heading = options.openHeadings?.at(-1);
 			let minIndex = nodes.findLastIndex((n, i) => n === heading || n.matches?.(options.shiftables));
 
-			let height = util.getHeight(child, {force: true});
+			let height = child.getBoundingClientRect().height;
 
 			// Try shifting up first
 			let up = {};
