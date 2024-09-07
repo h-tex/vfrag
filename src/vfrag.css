@@ -89,6 +89,8 @@ figcaption:where(:last-child) {
 			/* Highlight empty space */
 			&::after {
 				content: var(--empty-lines-text) " empty lines";
+				display: block;
+				height: calc(var(--empty-lines) * 1lh);
 				flex: 1;
 				box-sizing: border-box;
 				padding: .5em;
