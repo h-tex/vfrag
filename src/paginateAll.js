@@ -7,6 +7,13 @@ import * as util from "./util.js";
  * @property {number} time - Time taken in milliseconds
  */
 
+const DEFAULT_OPTIONS = {
+	root: document.documentElement,
+	sections: ".page, .vfrag-page",
+	askEvery: 200,
+	renderEvery: 20,
+};
+
 /**
  * Paginate multiple containers in a continuous sequence, with styling hooks on the root.
  * @param { string} selector
@@ -21,18 +28,28 @@ export default async function paginateAll (options = {}) {
 		options = {sections: options};
 	}
 
-	options.root ??= document.documentElement;
-	options.askEvery ??= 200;
-	options.renderEvery ??= 15;
+	for (let option in DEFAULT_OPTIONS) {
+		if (!(option in options)) {
+			options[option] = DEFAULT_OPTIONS[option];
+		}
+	}
+
 	options.renderEvery = Math.min(options.askEvery, options.askEvery);
 
 	options.root.classList.add("paginated", "paginating");
-	let sections = options.sections ?? ".page";
+	options.root.classList.toggle("vfrag-debug", options.debug);
+
+	let sections = options.sections;
 	sections = typeof sections === "string" ? options.root.querySelectorAll(sections) : sections;
 
 	await util.nextFrame();
 
 	for (let section of sections) {
+		if (!section.matches(DEFAULT_OPTIONS.sections)) {
+			// We need some kind of styling hook here
+			section.classList.add("vfrag-page");
+		}
+
 		await util.domChange(() => paginate(section, options));
 	}
 
