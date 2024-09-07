@@ -1,9 +1,10 @@
 import getStyle from "./util/getStyle.js";
 export { getStyle };
 
-// NOTE doesn't take borders into account
 export function getInnerHeight (outerHeight, style) {
-	return outerHeight - (style.padding_block_start + style.padding_block_end);
+	let padding = style.padding_block_start + style.padding_block_end;
+	let border = style.border_block_start_width + style.border_block_end_width;
+	return outerHeight - padding - border;
 }
 
 function findHighestValue (low, high, f, upperBound) {

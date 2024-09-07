@@ -1,13 +1,16 @@
 const styles = new WeakMap();
+
 const categoricalProperties = [
 	"position", "display", "box-sizing",
 	"page-break-before", "page-break-inside", "page-break-after",
 	"text-wrap",
 
 ];
+
 const numericalProperties = [
 	"padding-block-start", "padding-block-end",
 	"margin-block-start", "margin-block-end",
+	"border-block-start-width", "border-block-end-width",
 	"min-height", "height",
 	"line-height",
 	"orphans", "widows",
