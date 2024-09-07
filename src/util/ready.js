@@ -1,5 +1,6 @@
 import getStyle from "./getStyle.js";
 
+const TIMEOUT = 5000;
 const readyElements = new WeakMap();
 const loadElements = ["embed", "iframe", "img", "input", "script", "source", "track", "video", "link", "style", "object"];
 const loadElementContainers = ["figure", "section", "div", "article", "details"];
@@ -41,6 +42,7 @@ export default function ready (node, force) {
 				loaded = new Promise((resolve, reject) => {
 					node.addEventListener("load", resolve, {once: true});
 					node.addEventListener("error", reject, {once: true});
+					setTimeout(reject, TIMEOUT); // ensure a hanging download doesn't throw everything off
 				}).catch(_ => _); // make resolved
 			}
 			else {
