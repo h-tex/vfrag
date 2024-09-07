@@ -70,6 +70,11 @@ export default async function consumeUntil (target_content_height, container, op
 				breaker = "break-before-always";
 				break;
 			}
+			else if (style.float !== "none") {
+				// Don’t bother taking measurements with floated elements
+				nodes.pushWeak(child);
+				continue;
+			}
 		}
 
 		let loaded = util.ready(child);
