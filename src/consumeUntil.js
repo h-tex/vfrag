@@ -101,8 +101,7 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 			else if (style?.break_after === "avoid") {
 				// Convert to weak node
-				nodes.pop();
-				nodes.pushWeak(child);
+				nodes.weak[nodes.length - 1] = true;
 			}
 
 			let remaining_height = target_content_height - nodes.height;
