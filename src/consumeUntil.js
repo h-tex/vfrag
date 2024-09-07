@@ -74,10 +74,14 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 		}
 
+		let loaded = util.ready(child);
 		let asyncTimer = options.asyncTimer ??= util.timer();
-		asyncTimer.start();
-		await util.ready(child);
-		asyncTimer.pause();
+
+		if (loaded instanceof Promise) {
+			asyncTimer.start();
+			await loaded;
+			asyncTimer.pause();
+		}
 
 		// Does it fit whole?
 		let fitsWhole = false;
@@ -267,11 +271,6 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 
 			child.dataset.shift = shiftNodes;
-
-			// Reparenting will force it to reload which can throw off future measurements
-			asyncTimer.start();
-			await util.ready(child, {force: true});
-			asyncTimer.end();
 			break;
 		}
 	}

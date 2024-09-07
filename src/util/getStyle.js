@@ -8,17 +8,24 @@ const categoricalProperties = [
 const numericalProperties = [
 	"padding-block-start", "padding-block-end",
 	"margin-block-start", "margin-block-end",
-	"min-height",
+	"min-height", "height",
 	"line-height",
 	"orphans", "widows",
 ];
 
-export default function getStyle (node) {
-	if (!node || node instanceof Node && node.nodeType !== 1) {
+/**
+ * Cache and return the computed style of a node.
+ * @param {Element} node
+ * @param {boolean} [force=false] - Force a recalculation of the style even if it is cached.
+ *                                  Why a boolean trap? For performance.
+ * @returns
+ */
+export default function getStyle (node, force) {
+	if (!node || node instanceof Node && node.nodeType !== Node.ELEMENT_NODE) {
 		return null;
 	}
 
-	let style = styles.get(node);
+	let style = force ? undefined : styles.get(node);
 
 	if (style) {
 		return style;
