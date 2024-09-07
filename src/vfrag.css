@@ -37,6 +37,17 @@ figcaption:where(:last-child) {
 	page: paginated;
 }
 
+.page,
+.vfrag-page {
+	& + & {
+		page-break-before: always;
+	}
+
+	&:has(+ &) {
+		page-break-after: always;
+	}
+}
+
 [data-page] {
 	/* A page */
 	position: relative;
@@ -64,6 +75,26 @@ figcaption:where(:last-child) {
 			opacity: .6;
 			font-weight: 300;
 			font-size: 80%;
+		}
+	}
+
+	&:is(.vfrag-debug, .vfrag-debug *) {
+		outline: 1px solid red;
+
+		/* Highlight areas that exceed page dimensions */
+		background: canvas linear-gradient(hsl(0 50% 50% / 10%) 0% 100%) no-repeat 0 var(--target-page-height) / 100% 100%;
+
+		&:where(.empty-space-m, .empty-space-l) {
+			/* Highlight empty space */
+			&::after {
+				content: var(--empty-lines-text) " empty lines";
+				flex: 1;
+				box-sizing: border-box;
+				padding: .5em;
+				background:
+					linear-gradient(to top, hsl(0 50% 50% / 50%) 1px, transparent 0) 0 0 / 100% 1lh,
+					hsl(0 90% 50% / 10%);
+			}
 		}
 	}
 }
