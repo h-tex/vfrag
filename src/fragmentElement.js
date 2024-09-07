@@ -10,6 +10,13 @@ export const fixup = {
 		let summary = original.querySelector(":scope > summary")?.cloneNode(true) ?? document.createElement("summary");
 		fragment.prepend(summary);
 	},
+
+	code (original, fragment, nodes) {
+		if (original.firstChild?.nodeValue?.[0] === "\n") {
+			// Prevent empty lines at the top of fragments
+			original.firstChild.nodeValue = original.firstChild.nodeValue.replace(/^\n+/, "");
+		}
+	}
 }
 
 export default function fragmentElement (original, consumed) {
