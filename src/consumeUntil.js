@@ -21,11 +21,11 @@ export default async function consumeUntil (target_content_height, container, op
 
 	const nodes = new util.NodeStack(container);
 
-	// Account for rounding errors
-	target_content_height++;
-
 	let container_style = util.getStyle(container);
 	let lh = container_style.line_height;
+
+	// Allow exceeding target height by this much (to account for rounding errors etc)
+	let tolerance = (options.tolerance ?? .4) * lh;
 
 	// Reason for stopping
 	let breaker;
@@ -86,8 +86,9 @@ export default async function consumeUntil (target_content_height, container, op
 		// Does it fit whole?
 		let fitsWhole = false;
 		nodes.push(child);
+		let height_with_child = nodes.height;
 
-		if (target_content_height >= nodes.height) {
+		if (height_with_child < target_content_height + tolerance) {
 			fitsWhole = true;
 		}
 		else {
@@ -106,7 +107,9 @@ export default async function consumeUntil (target_content_height, container, op
 				nodes.pushWeak(child);
 			}
 
-			if (nodes.height >= target_content_height) {
+			let remaining_height = target_content_height - nodes.height;
+
+			if (remaining_height < lh) {
 				// We've reached the target height, no need to process further
 				breaker = "full";
 				break;
@@ -131,14 +134,15 @@ export default async function consumeUntil (target_content_height, container, op
 				}
 			}
 			else { // element
-				let remaining_height = target_content_height - nodes.height;
+				let remaining_height = target_content_height - nodes.height + tolerance;
 				let empty_lines = remaining_height / lh;
 
 				if (empty_lines >= style.orphans) {
 					let child_height = child.getBoundingClientRect().height;
 					let child_lines = child_height / lh;
+					let is_large_enough = child_lines >= style.orphans + style.widows - .01;
 
-					if (child_lines >= style.orphans + style.widows - .01) {
+					if (is_large_enough) {
 						child.normalize();
 
 						let max_fragment_height = Math.min(remaining_height, child_height - style.widows * lh);
