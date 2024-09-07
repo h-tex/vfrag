@@ -48,13 +48,7 @@ export default async function paginate (container, options = {}) {
 		}
 
 		if (pages.length > 0) {
-			if (options.askEvery > 0 && pages.length % options.askEvery === 0) {
-				if (!confirm(`Paginated ${ totals.pages } pages. Continue?`)) {
-					options.stopped = true;
-					break;
-				}
-			}
-
+			let ask = options.askEvery > 0 && pages.length % options.askEvery === 0;
 			if (options.renderEvery > 0 && pages.length % options.renderEvery === 0) {
 				timers.async.start();
 				await util.domChange(() => {
@@ -70,6 +64,13 @@ export default async function paginate (container, options = {}) {
 
 				height = container.getBoundingClientRect().height;
 				remaining_content_height = util.getInnerHeight(height, style);
+			}
+
+			if (ask) {
+				if (!confirm(`Paginated ${ totals.pages } pages. Continue?`)) {
+					options.stopped = true;
+					break;
+				}
 			}
 		}
 	}
