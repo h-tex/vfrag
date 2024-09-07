@@ -2,6 +2,7 @@
 
 /* The unbreakables */
 h1, h2, h3, h4, h5, h6,
+summary, legend, caption, figcaption,
 figure, img, video, audio, iframe, embed, object,
 dt, dd {
 	page-break-inside: avoid;
@@ -95,6 +96,19 @@ figcaption:where(:last-child) {
 					linear-gradient(to top, hsl(0 50% 50% / 50%) 1px, transparent 0) 0 0 / 100% 1lh,
 					hsl(0 90% 50% / 10%);
 			}
+		}
+	}
+}
+
+/* Fragment styles */
+.fragment:not([data-fragment="1"]) {
+	&:is(li) {
+		list-style: none;
+	}
+
+	&:is(details) {
+		> summary {
+			opacity: .5;
 		}
 	}
 }

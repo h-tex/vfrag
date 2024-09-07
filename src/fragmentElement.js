@@ -6,9 +6,25 @@ export const fixup = {
 	},
 
 	details (original, fragment, nodes) {
+		let originalSummary = original.querySelector(":scope > summary");
+		let fragmentSummary = fragment.querySelector(":scope > summary");
+
+		if (originalSummary && fragmentSummary) {
+			// Nothing to do here
+			return;
+		}
+
 		// Clone <summary> if exists, or create one (so it can be hidden)
-		let summary = original.querySelector(":scope > summary")?.cloneNode(true) ?? document.createElement("summary");
-		fragment.prepend(summary);
+		let summary = originalSummary || fragmentSummary || document.createElement("summary");
+		let summaryClone = summary.cloneNode(true);
+
+		if (!originalSummary) {
+			original.prepend(summaryClone);
+		}
+
+		if (!fragmentSummary) {
+			fragment.prepend(summaryClone);
+		}
 	},
 
 	code (original, fragment, nodes) {
