@@ -194,9 +194,9 @@ export default async function consumeUntil (target_content_height, container, op
 
 			// Try shifting up first
 			let up = {};
-			up.index = Math.max(0, minIndex, nodes.indexOfHeight(target_content_height - height));
-
-			up.go = up.index < nodes.length;
+			// This is where we'd need to shift up to have enough space
+			let heightIndex = nodes.indexOfHeight(target_content_height - height);
+			up.go = heightIndex >= minIndex && heightIndex < i;
 
 			let consumeOptions = {
 				...options,
@@ -207,6 +207,7 @@ export default async function consumeUntil (target_content_height, container, op
 
 			if (up.go) {
 				// We can shift it up
+				up.index = Math.max(0, minIndex, heightIndex);
 				up.emptySpace = target_content_height - nodes.heightAt(up.index) - height;
 
 				if (up.emptySpace > 1) {
