@@ -49,29 +49,7 @@ export default class NodeStack extends Array {
 			return 0;
 		}
 
-		let ret = this.heightAt(-1);
-
-		let firstIndex = this.findIndex(n => affectsLayout(n));
-		if (firstIndex > 0) {
-			let first = this[firstIndex];
-			let marginStart = getStyle(first)?.margin_block_start ?? 0;
-
-			if (marginStart) {
-				ret -= marginStart;
-			}
-		}
-
-		let lastIndex = this.findLastIndex(n => affectsLayout(n));
-		if (lastIndex < this.length - 1) {
-			let last = this[lastIndex];
-			let marginEnd = getStyle(last)?.margin_block_end ?? 0;
-
-			if (marginEnd) {
-				ret -= marginEnd;
-			}
-		}
-
-		return ret;
+		return this.heightAt(-1);
 	}
 
 	heightAt (relativeIndex) {
