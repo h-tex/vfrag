@@ -97,12 +97,10 @@ export function isFragmentable (node, options) {
 		return true;
 	}
 
-	if (options.fragmentables && node.nodeType === Node.ELEMENT_NODE) {
+	if (node.nodeType === Node.ELEMENT_NODE && !isShiftable(node, options)) {
 		let style = getStyle(node);
 
-		if (node.matches(options.fragmentables) && style.break_inside !== "avoid") {
-			return true;
-		}
+		return style.break_inside !== "avoid";
 	}
 
 	return false;

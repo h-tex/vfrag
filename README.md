@@ -99,7 +99,6 @@ The available options are:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `fragmentables` | `string` | `"ol, ul, dl, div, p, details, section"` | Children that are _allowed_ to be fragmented further. CSS properties like `break-inside: avoid` will still be respected, it’s just that children *not* matching this selector will not even be considered for fragmentation regardless of their break properties. |
 | `shiftables` | `string` | `"figure:not(unshiftable)"` | Children that are _allowed_ to be shifted down, after some of their siblings to the next page to minimize empty space at the bottom of pages. Shiftables do not shift in a way that would move them to another section, or after other shiftables. |
 | `debug` | `boolean` | `false` | If true will output elements with `class=placeholder` that can be rendered to show empty space on each page. |
 | `verbose` | `boolean` | `false` | If true, will output additional info messages to the console. Note that this may slow things down a fair bit. |
