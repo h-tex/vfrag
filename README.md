@@ -92,7 +92,7 @@ The available options are:
 |--------|------|---------|-------------|
 | `aspectRatio` | `number` | `8.5/11` | Aspect ratio of the pages. This will be used to determine the target height (width will be unaffected). |
 | `startAt` | `number` | `1` | The index of the first page to start at. |
-| `animation` | `boolean` | `false` | If true, will use a view transition to display new pages. Note that this makes the overall pagination time a lot higher. |
+| `renderEvery` | `number` | `20` | If greater than 0, render incremental results every `renderEvery` pages within a section. |
 | `askEvery` | `number` | `200` | If greater than 0, will ask the user every `askEvery` pages if they want to continue. |
 
 ### `consumeUntil()` and `paginate()` and `paginateAll()`

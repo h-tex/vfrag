@@ -23,6 +23,7 @@ export default async function paginateAll (options = {}) {
 
 	options.root ??= document.documentElement;
 	options.askEvery ??= 200;
+	options.renderEvery ??= 15;
 
 	options.root.classList.add("paginated", "paginating");
 	let sections = options.sections ?? ".page";

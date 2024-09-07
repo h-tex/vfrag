@@ -25,10 +25,14 @@ export default async function paginate (container, options = {}) {
 	let remaining_content_height = util.getInnerHeight(height, style);
 	let nodesProcessed = 0;
 	let pages = [];
+	let { startAt = totals.pages + 1 } = options;
+	let finished = false;
+	let pageNumber = startAt;
 
-	while (remaining_content_height > target_content_height) {
+	while (!(finished = remaining_content_height <= target_content_height)) {
 		// Add nodes to the nodes array until the page is full
 		options.startAtIndex = nodesProcessed;
+		// console.log(nodesProcessed)
 		options.asyncTimer = timers.async;
 		let consumed = await consumeUntil(target_content_height, container, options);
 
@@ -43,68 +47,90 @@ export default async function paginate (container, options = {}) {
 			break;
 		}
 
-		if (totals.pages > 0 && options.askEvery > 0 && totals.pages % options.askEvery === 0) {
-			if (!confirm(`Paginated ${ totals.pages } pages. Continue?`)) {
-				options.stopped = true;
-				break;
+		if (pages.length > 0) {
+			if (options.askEvery > 0 && pages.length % options.askEvery === 0) {
+				if (!confirm(`Paginated ${ totals.pages } pages. Continue?`)) {
+					options.stopped = true;
+					break;
+				}
+			}
+
+			if (options.renderEvery > 0 && pages.length % options.renderEvery === 0) {
+				timers.async.start();
+				await util.domChange(() => {
+					timers.async.pause();
+					renderPages();
+					timers.async.start();
+				});
+				timers.async.pause();
+
+				// Reset for next iteration
+				pages = [];
+				nodesProcessed = 0;
+
+				height = container.getBoundingClientRect().height;
+				remaining_content_height = util.getInnerHeight(height, style);
 			}
 		}
 	}
 
-	timers.consume.pause();
-	timers.consume.total -= timers.async.total;
+	async function renderPages () {
+		timers.consume.pause();
 
-	// Now actually fragment the container (in a document fragment to avoid reflows)
-	timers.DOM.start();
+		// Now actually fragment the container (in a document fragment to avoid reflows)
+		timers.DOM.start();
 
-	// Save position in the DOM
-	let marker = document.createComment(`${ container.id ?? container.data.id ?? container.nodeName }`);
-	container.replaceWith(marker);
+		// Save position in the DOM
+		let marker = document.createComment(`${ container.id ?? container.data.id ?? container.nodeName }`);
+		container.replaceWith(marker);
 
-	let docFragment = document.createDocumentFragment();
-	docFragment.append(container);
+		let docFragment = document.createDocumentFragment();
+		docFragment.append(container);
 
-	let { startAt = totals.pages + 1 } = options;
+		// Update page stats
+		info.pages += pages.length;
+		totals.pages += pages.length;
 
-	// Update page stats
-	info.pages = pages.length;
-	totals.pages += info.pages;
+		options.root.style.setProperty("--page-count", totals.pages);
+		options.root.style.setProperty("--pages", `"${totals.pages}"`);
 
-	options.root.style.setProperty("--page-count", totals.pages);
-	options.root.style.setProperty("--pages", `"${totals.pages}"`);
-
-	for (let i = 0; i<pages.length; i++) {
-		let consumed = pages[i];
-		let page = container;
-
-		if (consumed !== pages.at(-1)) {
-			// Not the last page, create a new page
+		for (let i = 0; i < pages.length; i++) {
+			let consumed = pages[i];
+			let page = container;
+			let isLast = finished && i === pages.length - 1;
 			let { emptyLines } = consumed;
-			page = fragmentElement(container, consumed);
-
 			info.empty_lines.push(emptyLines);
-			page.style.setProperty("--empty-lines", emptyLines);
-			page.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
 
-			if (emptyLines > 2.5) {
-				page.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
+			if (!isLast) {
+				// Not the last page, create a new page
+				page = fragmentElement(container, consumed);
+				page.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
+
+				if (emptyLines > 2.5) {
+					page.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
+				}
 			}
+
+			page.style.setProperty("--empty-lines", emptyLines);
+
+			// Add page number
+			pageNumber++;
+			page.style.setProperty("--page-number", pageNumber);
+			page.dataset.page = pageNumber;
+
+			page.insertAdjacentHTML("beforeend", `<a href="#${ page.id }" class="page-number">${ pageNumber }</a>`);
+
+			page.classList.add("pagination-done");
 		}
 
-		// Add page number
-		let pageNumber = startAt + i;
-		page.style.setProperty("--page-number", pageNumber);
-		page.dataset.page = pageNumber;
+		marker.replaceWith(docFragment);
 
-		page.insertAdjacentHTML("beforeend", `<a href="#${ page.id }" class="page-number">${ pageNumber }</a>`);
-
-		page.classList.add("pagination-done");
+		timers.DOM.pause();
 	}
 
-	marker.replaceWith(docFragment);
+	renderPages();
 
 	totals.empty_lines.push(...info.empty_lines);
-	timers.DOM.pause();
 
 	return info;
 }
