@@ -22,7 +22,7 @@ export default async function paginateAll (options = {}) {
 	}
 
 	options.root ??= document.documentElement;
-	options.askEvery ??= 5;
+	options.askEvery ??= 200;
 	options.renderEvery ??= 15;
 	options.renderEvery = Math.min(options.askEvery, options.askEvery);
 
