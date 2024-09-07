@@ -2,8 +2,6 @@ import * as util from "./util.js";
 import consumeUntil from "./consumeUntil.js";
 import fragmentElement from "./fragmentElement.js";
 
-
-
 // Paginate by breaking down .page into multiple .page elements
 export default async function paginate (container, options = {}) {
 	let info = { pages: 1, empty_lines: [] };
@@ -32,7 +30,6 @@ export default async function paginate (container, options = {}) {
 	while (!(finished = remaining_content_height <= target_content_height)) {
 		// Add nodes to the nodes array until the page is full
 		options.startAtIndex = nodesProcessed;
-		// console.log(nodesProcessed)
 		options.asyncTimer = timers.async;
 		let consumed = await consumeUntil(target_content_height, container, options);
 

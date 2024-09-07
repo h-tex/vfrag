@@ -162,7 +162,6 @@ export default async function consumeUntil (target_content_height, container, op
 							let remaining = [...child.childNodes].slice(consumed.nodes.length);
 
 							if (consumed.nodes.lengthStrong > 0 && remaining.filter(util.affectsLayout).length > 0) {
-								// child.classList.add("mark");
 								let fragment = fragmentElement(child, consumed);
 
 								nodes.push(fragment);
