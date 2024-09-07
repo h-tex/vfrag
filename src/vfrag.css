@@ -1,3 +1,30 @@
+/* Base breaking styles */
+
+/* The unbreakables */
+h1, h2, h3, h4, h5, h6,
+figure, img, video, audio, iframe, embed, object,
+dt, dd {
+	page-break-inside: avoid;
+}
+
+/* Breaking inside these should be possible, but only when really worth it */
+pre, code, article, blockquote, aside, details, table {
+	orphans: 3;
+	widows: 4;
+}
+
+h1, h2, h3, h4, h5, h6,
+[aria-level],
+summary, legend, caption,
+figcaption:where(:first-child) {
+	/* Avoid breaking after headings and heading-like elements */
+	page-break-after: avoid;
+}
+
+figcaption:where(:last-child) {
+	page-break-before: avoid;
+}
+
 /* To be used when printing from the paginated view.
    We have already fragmented the content, so there should naturally be enough space,
    so this prevents issues where a tiny amount of overflow causes the UA to create a new page.
