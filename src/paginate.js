@@ -25,30 +25,33 @@ export default async function paginate (container, options = {}) {
 	let remaining_content_height = util.getInnerHeight(height, style);
 	let nodesProcessed = 0;
 	let pages = [];
+	let pendingPages = [];
 	let { startAt = totals.pages + 1 } = options;
-	let finished = false;
 	let pageNumber = startAt;
 
-	while (!(finished = remaining_content_height <= target_content_height)) {
+	while (remaining_content_height > target_content_height) {
 		// Add nodes to the nodes array until the page is full
 		options.startAtIndex = nodesProcessed;
 		options.asyncTimer = timers.async;
 		let consumed = await consumeUntil(target_content_height, container, options);
 
 		if (consumed.nodes.length > 0) {
-			pages.push(consumed);
+			pendingPages.push(consumed);
 			nodesProcessed += consumed.nodes.length;
-			remaining_content_height -= consumed.nodes.height;
 		}
-		else {
+
+		let pages_done = pendingPages.length + pages.length;
+
+		if (consumed.nodes.length === 0) {
 			let approx_pages_left = Math.ceil(remaining_content_height / target_content_height);
-			console.warn("Cannot paginate", container, pages.length > 0 ? ` further (${pages.length} pages done, ~${ approx_pages_left } left)` : `(~${ approx_pages_left } pages left)`);
+			console.warn("Cannot paginate", container, pages_done > 0 ? ` further (${ pages_done } pages done, ~${ approx_pages_left } left)` : `(~${ approx_pages_left } pages left)`);
 			break;
 		}
 
-		if (pages.length > 0) {
-			let ask = options.askEvery > 0 && pages.length % options.askEvery === 0;
-			if (options.renderEvery > 0 && pages.length % options.renderEvery === 0) {
+		remaining_content_height -= consumed.nodes.height;
+
+		if (pages_done > 0) {
+			if (options.renderEvery > 0 && pages_done % options.renderEvery === 0) {
 				timers.async.start();
 				await util.domChange(() => {
 					timers.async.pause();
@@ -58,14 +61,14 @@ export default async function paginate (container, options = {}) {
 				timers.async.pause();
 
 				// Reset for next iteration
-				pages = [];
+				pendingPages = [];
 				nodesProcessed = 0;
 
 				height = container.getBoundingClientRect().height;
 				remaining_content_height = util.getInnerHeight(height, style);
 			}
 
-			if (ask) {
+			if (options.askEvery > 0 && pages_done % options.askEvery === 0) {
 				if (!confirm(`Paginated ${ totals.pages } pages. Continue?`)) {
 					options.stopped = true;
 					break;
@@ -73,6 +76,14 @@ export default async function paginate (container, options = {}) {
 			}
 		}
 	}
+
+	// Render any remaining pages
+	renderPages();
+
+	info.pages = pages;
+	totals.empty_lines.push(...info.empty_lines);
+
+	return info;
 
 	async function renderPages () {
 		timers.consume.pause();
@@ -88,20 +99,19 @@ export default async function paginate (container, options = {}) {
 		docFragment.append(container);
 
 		// Update page stats
-		info.pages += pages.length;
-		totals.pages += pages.length;
+		info.pages += pendingPages.length;
+		totals.pages += pendingPages.length;
 
 		options.root.style.setProperty("--page-count", totals.pages);
 		options.root.style.setProperty("--pages", `"${totals.pages}"`);
 
-		for (let i = 0; i < pages.length; i++) {
-			let consumed = pages[i];
+		let consumed;
+		while (consumed = pendingPages.shift()) {
 			let page = container;
-			let isLast = finished && i === pages.length - 1;
 			let { emptyLines } = consumed;
 			info.empty_lines.push(emptyLines);
 
-			if (!isLast) {
+			if (remaining_content_height > 0) {
 				// Not the last page, create a new page
 				page = fragmentElement(container, consumed);
 				page.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
@@ -127,10 +137,4 @@ export default async function paginate (container, options = {}) {
 
 		timers.DOM.pause();
 	}
-
-	renderPages();
-
-	totals.empty_lines.push(...info.empty_lines);
-
-	return info;
 }
