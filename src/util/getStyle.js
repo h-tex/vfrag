@@ -7,6 +7,7 @@ const categoricalProperties = [
 ];
 const numericalProperties = [
 	"padding-block-start", "padding-block-end",
+	"margin-block-start", "margin-block-end",
 	"min-height",
 	"line-height",
 	"orphans", "widows",
