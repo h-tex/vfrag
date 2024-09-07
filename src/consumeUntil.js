@@ -130,6 +130,9 @@ export default async function consumeUntil (target_content_height, container, op
 					if (maxOffset > 0) {
 						child.splitText(maxOffset);
 						nodes.push(child);
+
+						breaker = "fragmentation";
+						break;
 					}
 				}
 			}
@@ -163,6 +166,8 @@ export default async function consumeUntil (target_content_height, container, op
 								let fragment = fragmentElement(child, consumed);
 
 								nodes.push(fragment);
+								breaker = "fragmentation";
+								break;
 							}
 						}
 					}
@@ -170,7 +175,7 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 
 			// If we've reached the point of fragmenting a node, we definitely can't fit more
-			breaker = "fragmentation";
+			breaker = "no-space";
 			break;
 		}
 		else if (nodes.height === 0 || nodes.lengthStrong === 0) {
