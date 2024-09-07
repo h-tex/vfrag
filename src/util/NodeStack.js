@@ -61,9 +61,6 @@ export default class NodeStack extends Array {
 
 		if (this.heights[index] === undefined) {
 			// We need to calculate it
-			if (!this.range) {
-				console.log(this.arg)
-			}
 			this.range.setEndAfter(node);
 			this.heights[index] = this.range.getBoundingClientRect().height;
 			this.#update(); // restore range
