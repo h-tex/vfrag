@@ -11,7 +11,7 @@ let H1_to = Object.fromEntries(Array.from({length: 6}, (_, i) => ["H" + (i + 1),
  * @sideeffect May split certain block elements
  * @param {number} target_content_height
  * @param {Element} container
- * @returns {Array<Node>}
+ * @returns {object}
  */
 export default async function consumeUntil (target_content_height, container, options = {}) {
 	options.shiftables ??= DEFAULT_SHIFTABLES;
@@ -32,7 +32,8 @@ export default async function consumeUntil (target_content_height, container, op
 		container.style.textWrap = "initial";
 	}
 
-	for (let i = options.startAtIndex; i < container.childNodes.length; i++) {
+	let i = options.startAtIndex;
+	for (; i < container.childNodes.length; i++) {
 		let child = container.childNodes[i];
 
 		if (options.stopAt) {
@@ -286,7 +287,12 @@ export default async function consumeUntil (target_content_height, container, op
 		}
 	}
 
-	nodes.popWeak();
+	if (i === container.childNodes.length) {
+		breaker = "end";
+	}
+	else {
+		nodes.popWeak();
+	}
 
 	if (container.style.textWrap === "initial") {
 		// Restore original value.

@@ -46,7 +46,19 @@ export default async function paginate (container, options = {}) {
 		info.pagesLeft = Math.ceil(remaining_content_height / target_content_height) - 1;
 
 		if (consumed.nodes.length === 0) {
-			console.warn("Cannot paginate", container, info.pages > 0 ? ` further (${ info.pages } pages done, ~${ info.pagesLeft } left)` : `(~${ info.pagesLeft } pages left)`);
+			let remainingNodes = container.childNodes.length - nodeIndex;
+
+			if (remainingNodes > 0) {
+				console.warn("Cannot paginate", container, info.pages > 0 ? ` further (${ info.pages } pages done, ~${ info.pagesLeft } left)` : `(~${ info.pagesLeft } pages left)`);
+
+			}
+			else {
+				// We consumed everything, we don’t actually need a fragment here
+				pendingPages.pop();
+				info.pages--;
+				totals.pages--;
+			}
+
 			break;
 		}
 
