@@ -39,8 +39,7 @@ export default async function paginateAll (options = {}) {
 	options.root.classList.add("paginated", "paginating");
 	options.root.classList.toggle("vfrag-debug", options.debug);
 
-	let sections = options.sections;
-	sections = typeof sections === "string" ? options.root.querySelectorAll(sections) : sections;
+	let sections = options.root.querySelectorAll(options.sections);
 
 	await util.nextFrame();
 

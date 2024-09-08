@@ -83,7 +83,7 @@ The available options are:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `sections` | `string` or `Array<Element>` | `".page"` | The container(s) to paginate. |
+| `sections` | `string` | `".page"` | CSS selector for which container(s) to paginate. |
 | `root` | `Element` | `document.documentElement` | The root element to query for fragmentation containers and to apply the `.paginated` class to. |
 
 ### `paginate()` and `paginateAll()`
