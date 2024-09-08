@@ -38,13 +38,15 @@ export default async function paginateAll (options = {}) {
 
 	options.renderEvery = Math.min(options.askEvery, options.askEvery);
 
+	let timer = util.timer();
+	timer.start();
+
 	options.root.classList.add("paginated", "paginating");
 
 	if (options.debug) {
 		options.root.classList.add("vfrag-debug");
 		options.root.style.setProperty("--page-aspect-ratio-image", `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ options.aspectRatio } 1"><rect width="100%" height="100%" fill="white" /></svg>')`);
 	}
-
 
 	let sections = options.root.querySelectorAll(options.sections);
 
@@ -91,11 +93,9 @@ export default async function paginateAll (options = {}) {
 	}
 	timers.DOM.pause();
 
-
 	let totalTime = new util.Timer(timers.consume + timers.DOM);
-	let totalTimeAsync = new util.Timer(totalTime + timers.async);
 
-	console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ totalTime } (total: ${ totalTimeAsync }, consume: ${ timers.consume }, DOM: ${ timers.DOM }).`
+	console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ totalTime } (total: ${ timer.end() }, consume: ${ timers.consume }, DOM: ${ timers.DOM }).`
 	+ ` Empty lines: ${ util.average(emptyLines)?.toLocaleString() } avg, ${ Math.max(...emptyLines).toLocaleString() } max.`);
 	options.root.classList.remove("paginating");
 	options.root.classList.add("done");
