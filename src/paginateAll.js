@@ -8,6 +8,8 @@ import * as util from "./util.js";
  */
 
 const DEFAULT_OPTIONS = {
+	startAt: 1,
+	aspectRatio: 8.5 / 11,
 	root: document.documentElement,
 	sections: ".page, .vfrag-page",
 	askEvery: 200,
@@ -37,11 +39,28 @@ export default async function paginateAll (options = {}) {
 	options.renderEvery = Math.min(options.askEvery, options.askEvery);
 
 	options.root.classList.add("paginated", "paginating");
-	options.root.classList.toggle("vfrag-debug", options.debug);
+
+	if (options.debug) {
+		options.root.classList.add("vfrag-debug");
+		options.root.style.setProperty("--page-aspect-ratio-image", `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ options.aspectRatio } 1"><rect width="100%" height="100%" fill="white" /></svg>')`);
+	}
+
 
 	let sections = options.root.querySelectorAll(options.sections);
 
 	await util.nextFrame();
+
+	options.root.addEventListener("fragmented", event => {
+		if (event.target.matches?.(options.sections)) {
+			let info = event.detail;
+			let pagesDone = options.totals.pages;
+			options.root.style.setProperty("--page-count", pagesDone);
+			options.root.style.setProperty("--approx-pages-left", info.pagesLeft);
+			options.root.style.setProperty("--pages", `"${pagesDone}"`);
+		}
+	});
+
+	let done = [];
 
 	for (let section of sections) {
 		if (!section.matches(DEFAULT_OPTIONS.sections)) {
@@ -49,15 +68,35 @@ export default async function paginateAll (options = {}) {
 			section.classList.add("vfrag-page");
 		}
 
-		await util.domChange(() => paginate(section, options));
+		let sectionDone = paginate(section, options);
+
+		done.push(sectionDone);
 	}
 
+	let sectionInfo = await Promise.all(done);
 	let timers = options.timers;
+	let emptyLines = sectionInfo.flatMap(info => info.pageDetails.map(consumed => consumed.emptyLines));
+
+	// Pagination finished, assign page numbers
+	timers.DOM.start();
+	let pages = options.root.querySelectorAll(options.sections);
+	let pageNumber = options.startAt;
+	for (let page of pages) {
+		page.style.setProperty("--page-number", pageNumber);
+		page.dataset.page = pageNumber;
+
+		// Add element to hold page number
+		page.insertAdjacentHTML("beforeend", `<a href="#${ page.id }" class="page-number"></a>`);
+		pageNumber++;
+	}
+	timers.DOM.pause();
+
+
 	let totalTime = new util.Timer(timers.consume + timers.DOM);
 	let totalTimeAsync = new util.Timer(totalTime + timers.async);
 
 	console.info(`Paginated ${ sections.length } sections into ${ options.totals.pages } pages in ${ totalTime } (total: ${ totalTimeAsync }, consume: ${ timers.consume }, DOM: ${ timers.DOM }).`
-	+ ` Empty lines: ${ util.average(options.totals.empty_lines)?.toLocaleString() } avg, ${ Math.max(...options.totals.empty_lines).toLocaleString() } max.`);
+	+ ` Empty lines: ${ util.average(emptyLines)?.toLocaleString() } avg, ${ Math.max(...emptyLines).toLocaleString() } max.`);
 	options.root.classList.remove("paginating");
 	options.root.classList.add("done");
 

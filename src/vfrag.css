@@ -63,40 +63,48 @@ figcaption:where(:last-child) {
 		bottom: 1lh;
 		left: 50%;
 		transform: translateX(-50%);
-		font-weight: bold;
-		font-size: 125%;
 		line-height: 1;
 		font-variant-numeric: diagonal-fractions;
-		letter-spacing: .1em;
 		text-decoration: none;
 		color: inherit;
+		counter-reset: page var(--page-number, 1) pages var(--page-count, 1);
+
+		&::before {
+			content: counter(page);
+			font-size: 125%;
+			font-weight: bold;
+			letter-spacing: .1em;
+		}
 
 		&::after {
 			content: "/" var(--pages);
 			opacity: .6;
 			font-weight: 300;
-			font-size: 80%;
 		}
 	}
 
 	&:is(.vfrag-debug, .vfrag-debug *) {
-		outline: 1px solid red;
+		@media print {
+			outline: 1px solid red;
+		}
 
-		/* Highlight areas that exceed page dimensions */
-		background: canvas linear-gradient(hsl(0 50% 50% / 10%) 0% 100%) no-repeat 0 var(--target-page-height) / 100% 100%;
+		@media screen {
+			/* Highlight areas that exceed page dimensions */
+			background: var(--page-aspect-ratio-image,) no-repeat hsl(0 50% 95%);
 
-		&:where(.empty-space-m, .empty-space-l) {
-			/* Highlight empty space */
-			&::after {
-				content: var(--empty-lines-text) " empty lines";
-				display: block;
-				height: calc(var(--empty-lines) * 1lh);
-				flex: 1;
-				box-sizing: border-box;
-				padding: .5em;
-				background:
-					linear-gradient(to top, hsl(0 50% 50% / 50%) 1px, transparent 0) 0 0 / 100% 1lh,
-					hsl(0 90% 50% / 10%);
+			&:where(.empty-space-m, .empty-space-l) {
+				/* Highlight empty space */
+				&::after {
+					content: var(--empty-lines-text) " empty lines";
+					display: block;
+					height: calc(var(--empty-lines) * 1lh);
+					flex: 1;
+					box-sizing: border-box;
+					padding: .5em;
+					background:
+						linear-gradient(to top, hsl(0 50% 50% / 50%) 1px, transparent 0) 0 0 / 100% 1lh,
+						hsl(0 90% 50% / 10%);
+				}
 			}
 		}
 	}
