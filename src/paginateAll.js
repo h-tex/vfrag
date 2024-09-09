@@ -86,8 +86,9 @@ export default async function paginateAll (options = {}) {
 	// Pagination finished, assign page numbers
 	timers.DOM.start();
 	let pages = options.root.querySelectorAll(options.sections);
-	for (let pageNumber = options.startAt; pageNumber < pages.length; pageNumber++) {
-		let page = pages[pageNumber];
+	for (let i = 0; i < pages.length; i++) {
+		let pageNumber = i + options.startAt;
+		let page = pages[i];
 
 		page.style.setProperty("--page-number", pageNumber);
 		page.dataset.page = pageNumber;
