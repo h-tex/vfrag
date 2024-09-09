@@ -44,8 +44,8 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 		}
 
-		if (H1_to.H6.test(child.nodeName)) {
-			let level = Number(child.nodeName[1]);
+		if (child.computedRole === "heading") {
+			let level = child.ariaLevel ?? Number(child.nodeName[1]);
 			options.openHeadings ??= [];
 			while (options.openHeadings.length > level) {
 				options.openHeadings.pop();

@@ -15,7 +15,7 @@ pre, code, article, blockquote, aside, details, table {
 }
 
 h1, h2, h3, h4, h5, h6,
-[aria-level],
+[role="heading"][aria-level],
 summary, legend, caption,
 figcaption:where(:first-child) {
 	/* Avoid breaking after headings and heading-like elements */
