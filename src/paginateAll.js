@@ -14,6 +14,13 @@ const DEFAULT_OPTIONS = {
 	sections: ".page, .vfrag-page",
 	askEvery: 200,
 	renderEvery: 20,
+	running: {
+		headers: {
+			maxLevels: 2,
+			separator: "&raquo;",
+		},
+		pageNumbers: true
+	},
 };
 
 /**
@@ -56,7 +63,6 @@ export default async function paginateAll (options = {}) {
 			let pagesDone = options.totals.pages;
 			options.root.style.setProperty("--page-count", pagesDone);
 			options.root.style.setProperty("--approx-pages-left", info.pagesLeft);
-			options.root.style.setProperty("--pages", `"${pagesDone}"`);
 		}
 	});
 
@@ -80,14 +86,11 @@ export default async function paginateAll (options = {}) {
 	// Pagination finished, assign page numbers
 	timers.DOM.start();
 	let pages = options.root.querySelectorAll(options.sections);
-	let pageNumber = options.startAt;
-	for (let page of pages) {
+	for (let pageNumber = options.startAt; pageNumber < pages.length; pageNumber++) {
+		let page = pages[pageNumber];
+
 		page.style.setProperty("--page-number", pageNumber);
 		page.dataset.page = pageNumber;
-
-		// Add element to hold page number
-		page.insertAdjacentHTML("beforeend", `<a href="#${ page.id }" class="page-number"></a>`);
-		pageNumber++;
 	}
 	timers.DOM.pause();
 

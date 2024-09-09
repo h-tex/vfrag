@@ -54,20 +54,47 @@ figcaption:where(:last-child) {
 		/* A paginated page, after page numbers */
 		position: relative;
 
-		> .page-number {
+		> .running-header,
+		> .running-footer {
 			position: absolute;
-			bottom: 1lh;
-			left: 50%;
-			transform: translateX(-50%);
 			line-height: 1;
-			font-variant-numeric: diagonal-fractions;
-			text-decoration: none;
-			color: inherit;
+			width: max-content;
+			max-width: calc(100% - var(--running-margin, 2lh));
+
+			&.start {
+				inset-inline-start: 0;
+			}
+
+			&.end {
+				inset-inline-end: 0;
+			}
+
+			&:not(.start, .end) {
+				inset-inline-start: 50%;
+				transform: translateX(-50%);
+			}
 
 			&:where([data-page="1"] > .page-number) {
-				/* No page number in the first page */
+				/* No running headers and footers on the first page */
 				display: none;
 			}
+
+			a&, a {
+				text-decoration: none;
+				color: inherit;
+			}
+		}
+
+		> .running-header {
+			inset-block-start: var(--running-header-offset, 3lh);
+		}
+
+		> .running-footer {
+			inset-block-end: var(--running-footer-offset, 1.2lh);
+		}
+
+		> .page-number {
+			font-variant-numeric: diagonal-fractions;
 
 			&::before {
 				counter-reset: page var(--page-number);
@@ -82,6 +109,10 @@ figcaption:where(:last-child) {
 				opacity: .6;
 				font-weight: 300;
 			}
+		}
+
+		> .running-header {
+			p
 		}
 
 		&:is(.vfrag-debug, .vfrag-debug *) {

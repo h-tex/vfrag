@@ -61,8 +61,6 @@ export default async function consumeUntil (target_content_height, container, op
 			options.openHeadings.push(heading);
 		}
 
-
-
 		let style = util.getStyle(child);
 
 		if (style) {

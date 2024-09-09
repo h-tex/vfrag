@@ -102,6 +102,7 @@ export default async function paginate (container, options = {}) {
 
 	// Render any remaining pages
 	await renderPages();
+	addRunningElements(container, options);
 
 	return info;
 
@@ -124,30 +125,26 @@ export default async function paginate (container, options = {}) {
 
 			let consumed;
 			while (consumed = pendingPages.shift()) {
-				let page;
-				if (consumed.nodes) {
-					pages.push(consumed);
+				pages.push(consumed);
 
-					page = fragmentElement(container, consumed);
-					page.vfrag = consumed;
+				let page = fragmentElement(container, consumed);
+				page.vfrag = consumed;
 
-					let { emptyLines } = consumed;
-					if (options.debug) {
-						page.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
-					}
-
-					page.style.setProperty("--empty-lines", emptyLines);
-
-					if (emptyLines > 2.5) {
-						page.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
-					}
-					let detail = { page, consumed };
-					container.dispatchEvent(new CustomEvent("newpage", { bubbles: true, detail }));
+				let { emptyLines } = consumed;
+				if (options.debug) {
+					page.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
 				}
-				else {
-					// Last page
-					page = container;
+
+				page.style.setProperty("--empty-lines", emptyLines);
+
+				if (emptyLines > 2.5) {
+					page.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
 				}
+
+				addRunningElements(page, options);
+
+				let detail = { page, consumed };
+				container.dispatchEvent(new CustomEvent("newpage", { bubbles: true, detail }));
 			}
 
 			marker.replaceWith(docFragment);
@@ -156,5 +153,46 @@ export default async function paginate (container, options = {}) {
 		});
 
 		timers.async.start();
+	}
+}
+
+function addRunningElements (page, options) {
+	// Running headers
+	let openHeadings = page.vfrag?.openHeadings ?? options.openHeadings ?? [];
+	if (options.running.headers && openHeadings.length > 0) {
+		let dummy = document.createElement("div");
+		let header = document.createElement("nav");
+		header.classList.add("running-header");
+		let {maxLevels = 2, separator = '&raquo;' } = options.running.headers;
+		let content = openHeadings.slice(0, maxLevels).map(h => {
+			dummy.innerHTML = h.innerHTML;
+
+			// Drop presentational elements
+			for (let presentational of dummy.querySelectorAll("[role=presentation], [aria-hidden=true], [hidden]")) {
+				presentational.remove();
+			}
+
+			// Unwrap links
+			for (let a of dummy.querySelectorAll("a")) {
+				let replacement = document.createElement("ex-a");
+				// Copy attributes
+				for (let attr of a.attributes) {
+					replacement.setAttribute(attr.name, attr.value);
+				}
+
+				replacement.append(...a.childNodes);
+				a.replaceWith(replacement);
+			}
+
+			return `<a href="#${ h.id }">${ dummy.innerHTML }</a>`;
+		}).join(` ${ separator } `);
+
+		header.innerHTML = content;
+		page.append(header);
+	}
+
+	// Page numbers
+	if (options.running.pageNumbers) {
+		page.insertAdjacentHTML("beforeend", `<a href="#${ page.id }" class="page-number running-footer"></a>`);
 	}
 }
