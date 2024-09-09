@@ -130,8 +130,8 @@ export default async function paginate (container, options = {}) {
 					if (emptyLines > 2.5) {
 						page.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
 					}
-
-					container.dispatchEvent(new CustomEvent("newpage", { bubbles: true, detail: page }));
+					let detail = { page, consumed };
+					container.dispatchEvent(new CustomEvent("newpage", { bubbles: true, detail }));
 				}
 				else {
 					// Last page
