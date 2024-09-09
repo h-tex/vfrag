@@ -44,12 +44,6 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 		}
 
-		if (!util.affectsLayout(child)) {
-			// Comment nodes, empty text nodes, positioned or hidden elements etc.
-			nodes.pushWeak(child);
-			continue;
-		}
-
 		if (H1_to.H6.test(child.nodeName)) {
 			let level = Number(child.nodeName[1]);
 			options.openHeadings ??= [];
@@ -57,6 +51,12 @@ export default async function consumeUntil (target_content_height, container, op
 				options.openHeadings.pop();
 			}
 			options.openHeadings.push(child);
+		}
+
+		if (!util.affectsLayout(child)) {
+			// Comment nodes, empty text nodes, positioned or hidden elements etc.
+			nodes.pushWeak(child);
+			continue;
 		}
 
 		let style = util.getStyle(child);
