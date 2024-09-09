@@ -37,13 +37,8 @@ export default async function consumeUntil (target_content_height, container, op
 		let child = container.childNodes[i];
 
 		if (options.stopAt) {
-			if (i >= options.stopAt) {
-				// Stop at index
-				breaker = "stop-at";
-				break;
-			}
-			else if (typeof options.stopAt === "function" && options.stopAt(child, i, container)) {
-				// Stop at callback
+			if (i >= options.stopAt || typeof options.stopAt === "function" && options.stopAt(child, i, container)) {
+				// Stop at index or callback
 				breaker = "stop-at";
 				break;
 			}
