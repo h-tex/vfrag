@@ -67,7 +67,7 @@ export default async function paginate (container, options = {}) {
 				timers.async.start();
 				await util.domChange(() => {
 					timers.async.pause();
-					let ret = renderPages(pendingPages);
+					let ret = renderPages();
 					timers.async.start();
 					return ret;
 				});
@@ -90,11 +90,12 @@ export default async function paginate (container, options = {}) {
 	}
 
 	// Render any remaining pages
-	await renderPages(pendingPages);
+	await renderPages();
 
 	return info;
 
-	async function renderPages (pendingPages) {
+	// scope vars: timers, container, info, pages, pendingPages
+	async function renderPages () {
 		// Update page stats
 		timers.async.pause();
 		timers.consume.pause();
