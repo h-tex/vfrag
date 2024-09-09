@@ -100,5 +100,7 @@ export default async function paginateAll (options = {}) {
 	options.root.classList.remove("paginating");
 	options.root.classList.add("done");
 
+	options.root.dispatchEvent(new CustomEvent("paginated",{ bubbles: true, detail: options.totals }));
+
 	return options.totals;
 }
