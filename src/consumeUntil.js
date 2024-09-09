@@ -299,7 +299,8 @@ export default async function consumeUntil (target_content_height, container, op
 
 	let empty = Math.max(0, remaining_height);
 	let emptyLines = empty / lh;
+	let openHeadings = options.openHeadings?.slice() ?? [];
 
-	return { nodes, empty, emptyLines, breaker };
+	return { nodes, empty, emptyLines, breaker, openHeadings };
 }
 
