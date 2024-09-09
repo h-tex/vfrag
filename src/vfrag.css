@@ -34,12 +34,14 @@ figcaption:where(:last-child) {
 	margin-block-end: 0;
 }
 
-:where(:root).paginated {
+:where(.vfrag-root) {
 	page: paginated;
 }
 
 .page,
 .vfrag-page {
+	counter-reset: page var(--page-number, 1)
+		           pages var(--page-count, 1);
 	& + & {
 		page-break-before: always;
 	}
@@ -47,63 +49,63 @@ figcaption:where(:last-child) {
 	&:has(+ &) {
 		page-break-after: always;
 	}
-}
 
-[data-page] {
-	/* A page */
-	position: relative;
+	&[data-page] {
+		/* A paginated page, after page numbers */
+		position: relative;
 
-	&[data-page="1"] > .page-number {
-		/* No page number in the first page */
-		display: none;
-	}
+		> .page-number {
+			position: absolute;
+			bottom: 1lh;
+			left: 50%;
+			transform: translateX(-50%);
+			line-height: 1;
+			font-variant-numeric: diagonal-fractions;
+			text-decoration: none;
+			color: inherit;
 
-	> .page-number {
-		position: absolute;
-		bottom: 1lh;
-		left: 50%;
-		transform: translateX(-50%);
-		line-height: 1;
-		font-variant-numeric: diagonal-fractions;
-		text-decoration: none;
-		color: inherit;
-		counter-reset: page var(--page-number, 1) pages var(--page-count, 1);
+			&:where([data-page="1"] > .page-number) {
+				/* No page number in the first page */
+				display: none;
+			}
 
-		&::before {
-			content: counter(page);
-			font-size: 125%;
-			font-weight: bold;
-			letter-spacing: .1em;
+			&::before {
+				counter-reset: page var(--page-number);
+				content: counter(page);
+				font-size: 125%;
+				font-weight: bold;
+				letter-spacing: .1em;
+			}
+
+			&::after {
+				content: "/" counter(pages);
+				opacity: .6;
+				font-weight: 300;
+			}
 		}
 
-		&::after {
-			content: "/" var(--pages);
-			opacity: .6;
-			font-weight: 300;
-		}
-	}
+		&:is(.vfrag-debug, .vfrag-debug *) {
+			@media print {
+				outline: 1px solid red;
+			}
 
-	&:is(.vfrag-debug, .vfrag-debug *) {
-		@media print {
-			outline: 1px solid red;
-		}
+			@media screen {
+				/* Highlight areas that exceed page dimensions */
+				background: var(--page-aspect-ratio-image,) no-repeat hsl(0 50% 95%);
 
-		@media screen {
-			/* Highlight areas that exceed page dimensions */
-			background: var(--page-aspect-ratio-image,) no-repeat hsl(0 50% 95%);
-
-			&:where(.empty-space-m, .empty-space-l) {
-				/* Highlight empty space */
-				&::after {
-					content: var(--empty-lines-text) " empty lines";
-					display: block;
-					height: calc(var(--empty-lines) * 1lh);
-					flex: 1;
-					box-sizing: border-box;
-					padding: .5em;
-					background:
-						linear-gradient(to top, hsl(0 50% 50% / 50%) 1px, transparent 0) 0 0 / 100% 1lh,
-						hsl(0 90% 50% / 10%);
+				&:where(.empty-space-m, .empty-space-l) {
+					/* Highlight empty space */
+					&::after {
+						content: var(--empty-lines-text) " empty lines";
+						display: block;
+						height: calc(var(--empty-lines) * 1lh);
+						flex: 1;
+						box-sizing: border-box;
+						padding: .5em;
+						background:
+							linear-gradient(to top, hsl(0 50% 50% / 50%) 1px, transparent 0) 0 0 / 100% 1lh,
+							hsl(0 90% 50% / 10%);
+					}
 				}
 			}
 		}

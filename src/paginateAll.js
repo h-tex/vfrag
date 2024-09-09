@@ -31,9 +31,7 @@ export default async function paginateAll (options = {}) {
 	}
 
 	for (let option in DEFAULT_OPTIONS) {
-		if (!(option in options)) {
-			options[option] = DEFAULT_OPTIONS[option];
-		}
+		options[option] ??= DEFAULT_OPTIONS[option];
 	}
 
 	options.renderEvery = Math.min(options.askEvery, options.askEvery);
@@ -41,7 +39,7 @@ export default async function paginateAll (options = {}) {
 	let timer = util.timer();
 	timer.start();
 
-	options.root.classList.add("paginated", "paginating");
+	options.root.classList.add("vfrag-root", "paginated", "paginating");
 
 	if (options.debug) {
 		options.root.classList.add("vfrag-debug");
