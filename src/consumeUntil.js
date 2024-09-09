@@ -3,8 +3,6 @@ import fragmentElement from "./fragmentElement.js";
 
 export const DEFAULT_SHIFTABLES = "figure:not(.dont-shift), .shiftable";
 
-let H1_to = Object.fromEntries(Array.from({length: 6}, (_, i) => ["H" + (i + 1), i === 0 ? /^H1$/ : RegExp(`^H[1-${ (i + 1) }]$`)]));
-
 /**
  * Return an array of child nodes (or parts thereof) that fit within the target height.
  * @sideeffect May split exactly one text node.
@@ -44,10 +42,9 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 		}
 
-		if (child.computedRole === "heading") {
-			let level = child.ariaLevel ?? Number(child.nodeName[1]);
-			options.openHeadings ??= [];
-			while (options.openHeadings.length > level) {
+		let level = util.getHeadingLevel(child);
+		if (level) {
+			while (options.openHeadings.length >= level) {
 				options.openHeadings.pop();
 			}
 			options.openHeadings.push(child);
@@ -194,6 +191,7 @@ export default async function consumeUntil (target_content_height, container, op
 
 			// We cannot shift it up beyond its heading, or another shiftable
 			let heading = options.openHeadings?.at(-1);
+			let headingLevel = util.getHeadingLevel(heading);
 			let minIndex = nodes.findLastIndex((n, i) => n === heading || n.matches?.(options.shiftables));
 
 			let height = child.getBoundingClientRect().height;
@@ -208,7 +206,7 @@ export default async function consumeUntil (target_content_height, container, op
 				...options,
 				startAtIndex: i + 1,
 				// We cannot shift beyond a heading with level <= of heading or another shiftable
-				stopAt: n => H1_to[heading?.nodeName]?.test(n.nodeName) || util.isShiftable(n, options),
+				stopAt: n => util.getHeadingLevel(n.nodeName) >= headingLevel || util.isShiftable(n, options),
 			};
 
 			if (up.go) {

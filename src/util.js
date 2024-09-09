@@ -124,3 +124,16 @@ export async function domChange (fn) {
 		return util.nextFrame();
 	}
 }
+
+export function getHeadingLevel (h) {
+	if (h?.computedRole === "heading") {
+		if (h.ariaLevel) {
+			return h.ariaLevel;
+		}
+
+		let tag = h.nodeName;
+		if (tag.length === 2 && tag[0] === "H" && tag[1] >= 1) {
+			return parseInt(tag[1]);
+		}
+	}
+}
