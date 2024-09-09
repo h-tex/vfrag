@@ -4,13 +4,13 @@ import fragmentElement from "./fragmentElement.js";
 
 // Paginate by breaking down .page into multiple .page elements
 export default async function paginate (container, options = {}) {
-	let info = { pages: 1, empty_lines: [] };
+	let info = { pages: 1 };
 
 	if (options.stopped) {
 		return info;
 	}
 
-	let totals = options.totals ??= {pages: 0, pagesLeft: 0, empty_lines: []};
+	let totals = options.totals ??= { pages: 0, pagesLeft: 0 };
 	options.totals.pages++; // account for container
 	let timers = options.timers ??= {consume: new util.Timer(), DOM: new util.Timer(), async: new util.Timer() };
 
@@ -121,7 +121,10 @@ export default async function paginate (container, options = {}) {
 					page.vfrag = consumed;
 
 					let { emptyLines } = consumed;
-					page.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
+					if (options.debug) {
+						page.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
+					}
+
 					page.style.setProperty("--empty-lines", emptyLines);
 
 					if (emptyLines > 2.5) {
