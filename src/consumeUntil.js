@@ -42,6 +42,11 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 		}
 
+		if (!util.affectsLayout(child)) {
+			// Comment nodes, empty text nodes, positioned or hidden elements etc.
+			nodes.pushWeak(child);
+			continue;
+		}
 
 		let heading = options.headings.get(child);
 		if (heading) {
@@ -56,11 +61,7 @@ export default async function consumeUntil (target_content_height, container, op
 			options.openHeadings.push(heading);
 		}
 
-		if (!util.affectsLayout(child)) {
-			// Comment nodes, empty text nodes, positioned or hidden elements etc.
-			nodes.pushWeak(child);
-			continue;
-		}
+
 
 		let style = util.getStyle(child);
 
