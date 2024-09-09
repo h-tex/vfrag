@@ -118,6 +118,7 @@ export default async function paginate (container, options = {}) {
 					pages.push(consumed);
 
 					page = fragmentElement(container, consumed);
+					page.vfrag = consumed;
 
 					let { emptyLines } = consumed;
 					page.style.setProperty("--empty-lines-text", `"${ emptyLines.toLocaleString() }"`);
@@ -127,7 +128,7 @@ export default async function paginate (container, options = {}) {
 						page.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
 					}
 
-					container.dispatchEvent(new CustomEvent("page-created", { bubbles: true, detail: consumed }));
+					container.dispatchEvent(new CustomEvent("newpage", { bubbles: true, detail: page }));
 				}
 				else {
 					// Last page
