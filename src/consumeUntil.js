@@ -42,12 +42,18 @@ export default async function consumeUntil (target_content_height, container, op
 			}
 		}
 
-		let level = util.getHeadingLevel(child);
-		if (level) {
-			while (options.openHeadings.length >= level) {
-				options.openHeadings.pop();
+
+		let heading = options.headings.get(child);
+		if (heading) {
+			let level = util.getHeadingLevel(heading);
+			for (let i = 0; i < options.openHeadings.length; i++) {
+				let heading = options.openHeadings[i];
+				if (util.getHeadingLevel(heading) >= level) {
+					options.openHeadings.splice(i--, 1);
+				}
 			}
-			options.openHeadings.push(child);
+
+			options.openHeadings.push(heading);
 		}
 
 		if (!util.affectsLayout(child)) {
@@ -190,7 +196,7 @@ export default async function consumeUntil (target_content_height, container, op
 			// Should we shift it up or down? Let’s examine both and see what produces better results.
 
 			// We cannot shift it up beyond its heading, or another shiftable
-			let heading = options.openHeadings?.at(-1);
+			let heading = options.openHeadings.at(-1);
 			let headingLevel = util.getHeadingLevel(heading);
 			let minIndex = nodes.findLastIndex((n, i) => n === heading || n.matches?.(options.shiftables));
 

@@ -11,8 +11,19 @@ export default async function paginate (container, options = {}) {
 	}
 
 	let totals = options.totals ??= { pages: 0, pagesLeft: 0 };
-	options.totals.pages++; // account for container
 	let timers = options.timers ??= {consume: new util.Timer(), DOM: new util.Timer(), async: new util.Timer() };
+
+	let headings = new WeakMap([...container.querySelectorAll("h1, h2, h3, h4, h5, h6, [role=heading]")].map(h => {
+		let c = h;
+		while (c.parentElement !== container) {
+			c = c.parentElement;
+		}
+		return [c, h];
+	}));
+
+	options = { ...options, headings, openHeadings: [] };
+
+	options.totals.pages++; // account for container
 
 	timers.consume.start();
 
