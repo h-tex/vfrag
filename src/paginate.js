@@ -126,6 +126,8 @@ export default async function paginate (container, options = {}) {
 					if (emptyLines > 2.5) {
 						page.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
 					}
+
+					container.dispatchEvent(new CustomEvent("page-created", { bubbles: true, detail: consumed }));
 				}
 				else {
 					// Last page
