@@ -27,18 +27,49 @@ Avoiding too much DOM I/O also means it’s less likely to break content it did 
 2. **Do not handle the general case.**
 Instead but makes several assumptions about the structure and layout of the document (see below),
 as well as how fragmentation should be handled.
-3. **No CSS parsing.**
-This means it does not attempt to polyfill any Paged Media spec.
+3. **Not a CSS polyfill.**
+vfrag does not attempt to polyfill any CSS spec and does not parse any CSS.
 Instead of unsupported CSS syntax that needs to be parsed,
 it uses class names, CSS variables, standard (supported) CSS properties and rules, and the CSS OM.
+This makes it both a lot lighter and future-proof, and allows it to do things that are not possible with CSS
+(e.g. HTML in running headers, shifting certain nodes to minimize empty space, etc.).
 4. **Screen media remains screen media.**
 Rendering print styles on screen is a non-goal.
-Any differences that affect pagination should be handled via CSS selectors (`.paginated *`).
+Any differences that affect pagination should be handled via CSS selectors (`.pagination-root *`).
 and `page-break-*` or `break-*` CSS properties should be specified on screen media as well
-(they have no effect so there is no reason to scope them to `print`).
+(they have no effect so there is no reason to scope them to `print` media).
 5. **Static**
 This is a static view, intended to create a paged view that can be printed shortly after it is generated.
-Updating the pagination if the content changes is a non-goal.
+Monitoring content changes and updating the pagination is a non-goal,
+though we do plan to provide an API so that library users can do this.
+
+## How it works
+
+At a high level, all that vfrag does is break down containers into fragments (fragmentation)
+that best fit within a given height (hence the name vfrag = vertical fragmentation).
+A _pagination root_ is provided as an element (defaults to `document.documentElement`),
+and sections to be paginated are specified by a CSS selector (default `.page, .vfrag-page`).
+
+Each section is assumed to be a separate part of the book (e.g. chapter, appendix, etc.),
+with separate heading hierarchy.
+Sections are fragmented in parallel, and page numbers are assigned in a continuous sequence at the end.
+
+The page size is specified as an aspect ratio (defaults to `8.5/11`, i.e. US letter) rather than a width and height to be independent from sizing.
+Using that and the element’s computed style, a target content height is calculated.
+Then, nodes are progressively consumed until the target height is met, and the container is split into fragments.
+Nodes that do not fit whole are fragmented (unless they have `page-break-inside: avoid` or `widows` and `orphans` values that add up to more than their height).
+In general, CSS `page-break-*`, `break-*`, `widows`, `orphans` CSS properties are respected.
+
+Fragments are created by shallow cloning of the source element, then inserted before it.
+Certain element types need fixup or different styling based on the fragment index:
+- `ol`: The `start` attribute is used to ensure the numbering remains correct.
+- `details`: The `summary` element is also cloned (deeply) to avoid having the browser default of `Details` and styled in a faded way.
+- `li`: Any non-first fragment has its `list-style-type` set to `none`.
+- `code`: Empty lines are trimmed from the beginning of non-first fragments and the end of non-last fragments.
+
+Certain nodes (by default `figure, .shiftable`) can be _shifted_ earlier or later to reduce empty space,
+but they can never be shifted to another section or past another shiftable
+(eliminating a common LaTeX pain point where figures can end up in seemingly random places).
 
 ## Usage
 
@@ -108,38 +139,49 @@ The available options are:
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `startAtIndex` | `number` | `0` | The index of the first child node to start at. |
+| `stopAt` | `function` | - | Stop at a node that passes a given test |
 
 ## Limitations & Assumptions
 
-- Only simple values for `page-break-*` and `break-*` are supported (`auto`, `avoid` and `always`).
 - Measures dimensions in original container, so any spacing that is changed via structural tree pseudos will not be accounted for
 (e.g. margins that are removed if an element is `:first-child`).
+- Since vfrag has no access to the browser's hyphenation algorithm, fragments can only end in whole words.
 
 ## Styling hooks
 
-- `.paginated` class is added to the root element.
-- Every fragment created (i.e. not the source element) has a `.fragment` class
-- Every fragment (including the source element) has a `data-fragment` attribute with the fragment index.
-- Page numbers are added via `<a href="#page-N" class="page-number">N</a>` elements.
-- `--pages` (`<number>`) CSS variables are set on the root element.
+### Attributes
+
+| Name | On | Value | Description |
+|------|----|-------|-------------|
+| `data-fragment` | * | Number | The index of the fragment, starting from `1`. |
+| `data-page` | * | Number | The index of the page, starting from `1`. |
+
+### Classes
+
+| Class | On | Description |
+|-------|----|-------------|
+| `.pagination-root` | Root | Added to the root element. |
+| `.vfrag-page` | Page | Added to each page if the `sections` option is different than `.page, .vfrag-page`. |
+| `.whole` | Section | Fragmentation has not yet started.
+| `.paginating` | Section | Fragmentation is in progress.
+| `.paginated` | Section | Fragmentation is complete.
+| `.fragment` | * | Elements that have been fragmented (including pages)
+| `.last` | Fragments | Added to the last fragment.
+| `.page-number` | Page numbers | Added to page number elements.
+| `.running-header` | Page headers | Added to running headers.
+
+### CSS variables
+
+| Name | On | Type | Description |
+|------|----|------|-------------|
+| `--page-number` | Page | `<integer>` | The page number. |
+| `--pages` | Pagination Root | `<integer>` | The total number of pages. |
+| `--pages-left` | Pagination Root | `<integer>` | The (approx.) number of pages left to paginate. |
+| `--empty-lines` | Non-last Page | `<number>` | The number of empty lines at the bottom of the page. |
+
 
 ## Future plans
 
-- [ ] [Shift certain nodes (e.g. `<figure>`) later to minimize empty space at the bottom of pages](https://github.com/h-tex/vfrag/issues/2)
 - [ ] [Method to join fragments back together](https://github.com/h-tex/vfrag/issues/8)
 - [ ] [Method to repaginate specific pages](https://github.com/h-tex/vfrag/issues/9)
 
-## Fragmentation Algorithm
-
-- Children of the root container are moved to pages by splitting the container into fragments up to a given aspect ratio (`8.5/11`, i.e. US letter by default, customize via the `aspectRatio` option).
-- Fragments are created by shallow cloning. Certain element types have certain rules about how they are fragmented:
-  - `ol`: The `start` attribute is used to ensure the numbering remains correct.
-  - `details`: The `summary` element is also cloned (deeply) to avoid having the browser default of `Notes`.
-- The container to be fragmented is split by moving children to a previous fragment until the aspect ratio is met.
-While this is counter to the mental model of fragmentation which is that a container is progressively split into subsequent fragments,
-it minimizes DOM I/O since nodes only have to be moved once.
-- Most children are just moved to the right fragment and left alone (essentially assumed to have `break-inside: avoid`).
-Certain children are recursively fragmented (by default `ol, ul, dl, div, p, details, section`).
-To prevent widows and orphans, children are only fragmented if the number of empty lines is >= 2 and their length is >= 4 lines.
-- The `page-break-*` and `break-*` CSS properties are respected.
-- Text nodes are fragmented using binary search, only when on the boundary
