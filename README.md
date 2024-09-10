@@ -121,7 +121,7 @@ The available options are:
 - Every fragment created (i.e. not the source element) has a `.fragment` class
 - Every fragment (including the source element) has a `data-fragment` attribute with the fragment index.
 - Page numbers are added via `<a href="#page-N" class="page-number">N</a>` elements.
-- `--page-count` (`<number>`) and `--pages` (`<string>`) CSS variables are set on the root element.
+- `--pages` (`<number>`) CSS variables are set on the root element.
 
 ## Future plans
 

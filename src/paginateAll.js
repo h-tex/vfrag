@@ -46,10 +46,13 @@ export default async function paginateAll (options = {}) {
 	let timer = util.timer();
 	timer.start();
 
-	options.root.classList.add("vfrag-root", "paginated", "paginating");
+	options.root.classList.add("pagination-root", "paginated", "paginating");
+	if (options.startAt > 1) {
+		options.root.style.setProperty("--first-page", options.startAt);
+	}
 
 	if (options.debug) {
-		options.root.classList.add("vfrag-debug");
+		options.root.classList.add("debug-pagination");
 		options.root.style.setProperty("--page-aspect-ratio-image", `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ options.aspectRatio } 1"><rect width="100%" height="100%" fill="white" /></svg>')`);
 	}
 
@@ -60,9 +63,15 @@ export default async function paginateAll (options = {}) {
 	options.root.addEventListener("fragmented", event => {
 		if (event.target.matches?.(options.sections)) {
 			let info = event.detail;
-			let pagesDone = options.totals.pages;
-			options.root.style.setProperty("--page-count", pagesDone);
-			options.root.style.setProperty("--approx-pages-left", info.pagesLeft);
+
+			options.root.style.setProperty("--pages", options.totals.pages);
+
+			if (info.pagesLeft > 0) {
+				options.root.style.setProperty("--pages-left", info.pagesLeft);
+			}
+			else {
+				options.root.style.removeProperty("--pages-left");
+			}
 		}
 	});
 

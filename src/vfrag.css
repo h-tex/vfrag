@@ -34,14 +34,18 @@ figcaption:where(:last-child) {
 	margin-block-end: 0;
 }
 
-:where(.vfrag-root) {
+:where(.pagination-root) {
 	page: paginated;
+	--pages-total: calc(var(--pages, 1) + var(--pages-left, 0));
+	counter-reset: page var(--first-page, 1)
+		           pages var(--pages-total, 1);
 }
 
 .page,
 .vfrag-page {
-	counter-reset: page var(--page-number, 1)
-		           pages var(--page-count, 1);
+	counter-increment: page;
+	counter-reset: page var(--page-number);
+
 	& + & {
 		page-break-before: always;
 	}
@@ -115,7 +119,7 @@ figcaption:where(:last-child) {
 			p
 		}
 
-		&:is(.vfrag-debug, .vfrag-debug *) {
+		&:is(.debug-pagination, .debug-pagination *) {
 			@media print {
 				outline: 1px solid red;
 			}
