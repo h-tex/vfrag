@@ -211,7 +211,7 @@ export default async function consumeUntil (target_content_height, container, op
 				...options,
 				startAtIndex: i + 1,
 				// We cannot shift beyond a heading with level <= of heading or another shiftable
-				stopAt: n => util.getHeadingLevel(n.nodeName) >= headingLevel || util.isShiftable(n, options),
+				stopAt: n => util.getHeadingLevel(n) >= headingLevel || util.isShiftable(n, options),
 			};
 
 			if (up.go) {
