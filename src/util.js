@@ -126,7 +126,7 @@ export async function domChange (fn) {
 }
 
 export function getHeadingLevel (h) {
-	if (h.computedRole === "heading") {
+	if (h?.computedRole === "heading") {
 		if (h.ariaLevel) {
 			return h.ariaLevel;
 		}
