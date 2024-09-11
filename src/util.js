@@ -132,8 +132,8 @@ export function getHeadingLevel (h) {
 		}
 	}
 
-	let tag = h.nodeName;
-	if (tag.length === 2 && tag[0] === "H" && tag[1] >= 1) {
+	let tag = h?.nodeName;
+	if (tag && tag.length === 2 && tag[0] === "H" && tag[1] >= 1) {
 		return parseInt(tag[1]);
 	}
 }
