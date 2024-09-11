@@ -144,6 +144,28 @@ figcaption:where(:last-child) {
 				}
 			}
 		}
+
+		&:not(.debug-pagination, .debug-pagination *) {
+			&[data-page="1"] {
+				> .page-first {
+					margin-block-start: auto;
+				}
+			}
+
+			&.fragment-last {
+				/* Last page */
+				> .page-last {
+					margin-block-end: auto;
+				}
+			}
+
+			&:not([data-page="1"], .fragment-last) {
+				&:not(h1, h2, h3, h4, h5, h6, header):where(:has(+ :is(h1, h2))) {
+					/* Distribute empty space between before headings and after last child */
+					margin-bottom: auto;
+				}
+			}
+		}
 	}
 }
 

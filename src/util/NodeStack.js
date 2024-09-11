@@ -34,6 +34,10 @@ export default class NodeStack extends Array {
 		return this.at(-1);
 	}
 
+	get firstStrong () {
+		return this.at(this.weak.indexOf(false));
+	}
+
 	get lastStrong () {
 		return this.at(-1 - this.weak.slice().reverse().indexOf(false));
 	}

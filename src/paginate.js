@@ -128,6 +128,9 @@ export default async function paginate (container, options = {}) {
 				pages.push(consumed);
 
 				let page = fragmentElement(container, consumed);
+				consumed.nodes.firstStrong?.classList?.add("page-first");
+				consumed.nodes.lastStrong?.classList?.add("page-last");
+
 				page.vfrag = consumed;
 
 				let { emptyLines } = consumed;
