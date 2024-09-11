@@ -25,6 +25,10 @@ export default async function paginate (container, options = {}) {
 
 	options.totals.pages++; // account for container
 
+	timers.DOM.start();
+	prepare(container, options);
+	timers.DOM.pause();
+
 	timers.consume.start();
 
 	let {width, height} = container.getBoundingClientRect();
@@ -208,5 +212,28 @@ function addRunningElements (page, options) {
 	// Page numbers
 	if (options.running.pageNumbers) {
 		page.insertAdjacentHTML("beforeend", `<a href="#${ page.id }" class="page-number running-footer"></a>`);
+	}
+}
+
+// Move footnotes immediately after the block containing the reference
+function prepare (section, options) {
+	let footnotes = section.querySelectorAll(".footnote");
+
+	if (footnotes.length > 0) {
+		for (let footnote of footnotes) {
+			footnote.style.setProperty("--float", "bottom");
+			let backrefs = [...footnote.querySelectorAll(".footnote-backref")];
+			let refs = backrefs.map(ref => document.getElementById(ref.getAttribute("href").slice(1))).filter(Boolean);
+
+			for (let i = 0; i < refs.length; i++) {
+				let ref = refs[i];
+				let block = ref.closest(`:is(${ options.sections }) > *`);
+
+				if (block) {
+					let footnoteToInsert = i === 0 ? footnote : footnote.cloneNode(true);
+					block.after(footnoteToInsert);
+				}
+			}
+		}
 	}
 }
