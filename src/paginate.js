@@ -141,7 +141,9 @@ export default async function paginate (container, options = {}) {
 					page.classList.add("empty-space-" + (emptyLines > 6 ? "l" : "m"));
 				}
 
-				addRunningElements(page, options);
+				requestIdleCallback(() => {
+					addRunningElements(page, options);
+				});
 
 				let detail = { page, consumed };
 				container.dispatchEvent(new CustomEvent("newpage", { bubbles: true, detail }));
