@@ -68,6 +68,11 @@ export default async function consumeUntil (target_content_height, container, op
 				breaker = "break-before-always";
 				break;
 			}
+			else if (style.__float === "bottom") {
+				target_content_height -= child.getBoundingClientRect().height;
+				nodes.push(child);
+				continue;
+			}
 			else if (style.float !== "none") {
 				// Don’t bother taking measurements with floated elements
 				nodes.pushWeak(child);

@@ -4,7 +4,7 @@ const categoricalProperties = [
 	"position", "display", "float", "box-sizing",
 	"page-break-before", "page-break-inside", "page-break-after",
 	"text-wrap",
-
+	"--float",
 ];
 
 const numericalProperties = [

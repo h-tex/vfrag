@@ -127,7 +127,16 @@ export default async function paginate (container, options = {}) {
 			while (consumed = pendingPages.shift()) {
 				pages.push(consumed);
 
+				let bottomFloated = [];
+				let index = -1;
+				while (index = consumed.nodes.findIndex(node => node.style?.getPropertyValue("--float") === "bottom"), index >= 0) {
+					bottomFloated.push(...consumed.nodes.splice(index, 1));
+				}
+
+				consumed.nodes.push(...bottomFloated);
+
 				let page = fragmentElement(container, consumed);
+
 				consumed.nodes.firstStrong?.classList?.add("page-first");
 				consumed.nodes.lastStrong?.classList?.add("page-last");
 
