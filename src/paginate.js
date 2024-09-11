@@ -223,7 +223,7 @@ function prepare (section, options) {
 		for (let footnote of footnotes) {
 			footnote.style.setProperty("--float", "bottom");
 			let backrefs = [...footnote.querySelectorAll(".footnote-backref")];
-			let refs = backrefs.map(ref => document.getElementById(ref.getAttribute("href").slice(1))).filter(Boolean);
+			let refs = backrefs.map(ref => document.getElementById(ref.getAttribute("href").split("#")[1])).filter(Boolean);
 
 			for (let i = 0; i < refs.length; i++) {
 				let ref = refs[i];
