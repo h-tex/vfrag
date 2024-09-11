@@ -215,8 +215,8 @@ function addRunningElements (page, options) {
 	}
 }
 
-// Move footnotes immediately after the block containing the reference
 function prepare (section, options) {
+	// Move footnotes immediately after the block containing the reference
 	let footnotes = section.querySelectorAll(".footnote");
 
 	if (footnotes.length > 0) {
@@ -234,6 +234,16 @@ function prepare (section, options) {
 					block.after(footnoteToInsert);
 				}
 			}
+		}
+	}
+
+	// Move an only child <object> out of the containing paragraph so that it can be correctly measured
+	let objects = section.querySelectorAll("p > object:only-child");
+	if (objects.length > 0) {
+		for (let object of objects) {
+			let parent = object.parentElement;
+			parent.after(object);
+			parent.remove();
 		}
 	}
 }
