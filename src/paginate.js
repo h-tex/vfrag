@@ -60,20 +60,16 @@ export default async function paginate (container, options = {}) {
 		}
 
 		info.pagesLeft = Math.ceil(remaining_content_height / target_content_height) - 1;
+		let remainingNodes = container.childNodes.length - nodeIndex;
 
-		if (consumed.nodes.length === 0) {
-			let remainingNodes = container.childNodes.length - nodeIndex;
-
-			if (remainingNodes > 0) {
-				console.warn("Cannot paginate", container, info.pages > 0 ? ` further (${ info.pages } pages done, ~${ info.pagesLeft } left)` : `(~${ info.pagesLeft } pages left)`);
-			}
-			else {
-				// We consumed everything, we don’t actually need a fragment here
-				pendingPages.pop();
-				info.pages--;
-				totals.pages--;
-			}
-
+		if (remainingNodes === 0) {
+			// We consumed everything, we don’t actually need a fragment here
+			pendingPages.pop();
+			info.pages--;
+			totals.pages--;
+		}
+		else if (consumed.nodes.length === 0) {
+			console.warn("Cannot paginate", container, info.pages > 0 ? ` further (${ info.pages } pages done, ~${ info.pagesLeft } left)` : `(~${ info.pagesLeft } pages left)`);
 			break;
 		}
 
