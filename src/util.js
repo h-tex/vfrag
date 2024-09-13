@@ -121,7 +121,7 @@ export async function domChange (fn) {
 	}
 	else {
 		await fn();
-		return util.nextFrame();
+		return nextFrame();
 	}
 }
 
