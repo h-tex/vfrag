@@ -26,6 +26,15 @@ figcaption:where(:last-child) {
 	page-break-before: avoid;
 }
 
+/* Utility classes to be used in post-production */
+.force-break-before {
+	page-break-before: always;
+}
+
+.force-break-after {
+	page-break-after: always;
+}
+
 /* To be used when printing from the paginated view.
    We have already fragmented the content, so there should naturally be enough space,
    so this prevents issues where a tiny amount of overflow causes the UA to create a new page.
