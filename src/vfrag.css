@@ -78,8 +78,8 @@ figcaption:where(:last-child) {
 				transform: translateX(-50%);
 			}
 
-			&:where([data-page="1"] > .page-number) {
-				/* No running headers and footers on the first page */
+			&:where([data-page="1"] > *) {
+				/* No running headers and footers on the very first page */
 				display: none;
 			}
 
