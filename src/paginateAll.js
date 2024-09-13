@@ -41,7 +41,7 @@ export default async function paginateAll (options = {}) {
 		options[option] ??= DEFAULT_OPTIONS[option];
 	}
 
-	options.renderEvery = Math.min(options.askEvery, options.askEvery);
+	options.renderEvery = Math.min(options.askEvery, options.renderEvery);
 
 	let timer = util.timer();
 	timer.start();
