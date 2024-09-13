@@ -91,6 +91,11 @@ figcaption:where(:last-child) {
 
 		> .running-header {
 			inset-block-start: var(--running-header-offset, 3lh);
+
+			&:where([data-fragment="1"] > *) {
+				/* No running header on a chapter first page */
+				display: none;
+			}
 		}
 
 		> .running-footer {
