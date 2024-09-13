@@ -115,10 +115,6 @@ figcaption:where(:last-child) {
 			}
 		}
 
-		> .running-header {
-			p
-		}
-
 		&:is(.debug-pagination, .debug-pagination *) {
 			@media print {
 				outline: 1px solid red;
