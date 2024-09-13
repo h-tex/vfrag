@@ -26,7 +26,10 @@ export default async function paginate (container, options = {}) {
 	options.totals.pages++; // account for container
 
 	timers.DOM.start();
+
+	container.dispatchEvent(new CustomEvent("beforepaginate", { bubbles: true, detail: {options} }));
 	prepare(container, options);
+
 	timers.DOM.pause();
 
 	timers.consume.start();
