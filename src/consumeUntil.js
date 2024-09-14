@@ -124,22 +124,36 @@ export default async function consumeUntil (target_content_height, container, op
 			if (child.nodeType === Node.TEXT_NODE) {
 				// Handle fragmenting text nodes: find the maximum offset that fits within the target height
 				let maxOffset = util.findMaxOffset(child, nodes.range, target_content_height);
+				let text = child.textContent;
 
 				if (maxOffset > 0) {
 					// adjust so we're not breaking words halfway
-					let text = child.textContent;
-					while (maxOffset > 0 && /\p{Letter}/vg.test(text[maxOffset])) {
+					let breakAt = container_style.white_space_collapse === "preserve" ? /\r?\n/g : /\P{Letter}/vg;
+
+					while (maxOffset > 0 && !breakAt.test(text[maxOffset])) {
 						maxOffset--;
 					}
-
-					if (maxOffset > 0) {
-						child.splitText(maxOffset);
-						nodes.push(child);
-
-						breaker = "fragmentation";
-						break;
-					}
 				}
+
+				if (maxOffset <= 0) {
+					// Can't break this, move the whole thing to the next fragment
+					breaker = "text-full";
+				}
+				else {
+					if (maxOffset < text.length) {
+						child.splitText(maxOffset);
+						breaker = "fragmentation";
+					}
+					else {
+						// If we went down this path even though the text node fits whole,
+						// we certainly can't fit more!
+						breaker = "text-full";
+					}
+
+					nodes.push(child);
+				}
+
+				break;
 			}
 			else { // element
 				let remaining_height = target_content_height - nodes.height + tolerance;
