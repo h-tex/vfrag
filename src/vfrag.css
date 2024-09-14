@@ -52,6 +52,7 @@ figcaption:where(:last-child) {
 
 .page,
 .vfrag-page {
+	position: relative;
 	counter-increment: page;
 	counter-reset: page var(--page-number);
 
@@ -63,117 +64,112 @@ figcaption:where(:last-child) {
 		page-break-after: always;
 	}
 
-	&[data-page] {
-		/* A paginated page, after page numbers */
-		position: relative;
+	> .running-header,
+	> .running-footer {
+		position: absolute;
+		line-height: 1;
+		width: max-content;
+		max-width: calc(100% - var(--running-margin, 2lh));
 
-		> .running-header,
-		> .running-footer {
-			position: absolute;
-			line-height: 1;
-			width: max-content;
-			max-width: calc(100% - var(--running-margin, 2lh));
-
-			&.start {
-				inset-inline-start: 0;
-			}
-
-			&.end {
-				inset-inline-end: 0;
-			}
-
-			&:not(.start, .end) {
-				inset-inline-start: 50%;
-				transform: translateX(-50%);
-			}
-
-			&:where([data-page="1"] > *) {
-				/* No running headers and footers on the very first page */
-				display: none;
-			}
-
-			a&, a {
-				text-decoration: none;
-				color: inherit;
-			}
+		&.start {
+			inset-inline-start: 0;
 		}
 
-		> .running-header {
-			inset-block-start: var(--running-header-offset, 3lh);
-
-			&:where([data-fragment="1"] > *) {
-				/* No running header on a chapter first page */
-				display: none;
-			}
+		&.end {
+			inset-inline-end: 0;
 		}
 
-		> .running-footer {
-			inset-block-end: var(--running-footer-offset, 1.2lh);
+		&:not(.start, .end) {
+			inset-inline-start: 50%;
+			transform: translateX(-50%);
 		}
 
-		> .page-number {
-			font-variant-numeric: diagonal-fractions;
-
-			&::before {
-				counter-reset: page var(--page-number);
-				content: counter(page);
-				font-size: 125%;
-				font-weight: bold;
-				letter-spacing: .1em;
-			}
-
-			&::after {
-				content: "/" counter(pages);
-				opacity: .6;
-				font-weight: 300;
-			}
+		&:where([data-page="1"] > *) {
+			/* No running headers and footers on the very first page */
+			display: none;
 		}
 
-		&:is(.debug-pagination, .debug-pagination *) {
-			@media print {
-				outline: 1px solid red;
-			}
+		a&, a {
+			text-decoration: none;
+			color: inherit;
+		}
+	}
 
-			@media screen {
-				/* Highlight areas that exceed page dimensions */
-				background: var(--page-aspect-ratio-image,) no-repeat hsl(0 50% 95%);
+	> .running-header {
+		inset-block-start: var(--running-header-offset, 3lh);
 
-				&:where(.empty-space-m, .empty-space-l) {
-					/* Highlight empty space */
-					&::after {
-						content: var(--empty-lines-text) " empty lines";
-						display: block;
-						height: calc(var(--empty-lines) * 1lh);
-						flex: 1;
-						box-sizing: border-box;
-						padding: .5em;
-						background:
-							linear-gradient(to top, hsl(0 50% 50% / 50%) 1px, transparent 0) 0 0 / 100% 1lh,
-							hsl(0 90% 50% / 10%);
-					}
+		&:where([data-fragment="1"] > *) {
+			/* No running header on a chapter first page */
+			display: none;
+		}
+	}
+
+	> .running-footer {
+		inset-block-end: var(--running-footer-offset, 1.2lh);
+	}
+
+	> .page-number {
+		font-variant-numeric: diagonal-fractions;
+
+		&::before {
+			counter-reset: page var(--page-number);
+			content: counter(page);
+			font-size: 125%;
+			font-weight: bold;
+			letter-spacing: .1em;
+		}
+
+		&::after {
+			content: "/" counter(pages);
+			opacity: .6;
+			font-weight: 300;
+		}
+	}
+
+	&:is(.debug-pagination, .debug-pagination *) {
+		@media print {
+			outline: 1px solid red;
+		}
+
+		@media screen {
+			/* Highlight areas that exceed page dimensions */
+			background: var(--page-aspect-ratio-image,) no-repeat hsl(0 50% 95%);
+
+			&:where(.empty-space-m, .empty-space-l) {
+				/* Highlight empty space */
+				&::after {
+					content: var(--empty-lines-text) " empty lines";
+					display: block;
+					height: calc(var(--empty-lines) * 1lh);
+					flex: 1;
+					box-sizing: border-box;
+					padding: .5em;
+					background:
+						linear-gradient(to top, hsl(0 50% 50% / 50%) 1px, transparent 0) 0 0 / 100% 1lh,
+						hsl(0 90% 50% / 10%);
 				}
 			}
 		}
+	}
 
-		&:not(.debug-pagination, .debug-pagination *) {
-			&[data-page="1"] {
-				> .page-first {
-					margin-block-start: auto;
-				}
+	&:not(.debug-pagination, .debug-pagination *) {
+		&[data-page="1"] {
+			> .page-first {
+				margin-block-start: auto;
 			}
+		}
 
-			&.fragment-last {
-				/* Last page */
-				> .page-last {
-					margin-block-end: auto;
-				}
+		&.fragment-last {
+			/* Last page */
+			> .page-last {
+				margin-block-end: auto;
 			}
+		}
 
-			&:not([data-page="1"], .fragment-last) {
-				&:not(h1, h2, h3, h4, h5, h6, header):where(:has(+ :is(h1, h2))) {
-					/* Distribute empty space between before headings and after last child */
-					margin-bottom: auto;
-				}
+		&:not([data-page="1"], .fragment-last) {
+			&:not(h1, h2, h3, h4, h5, h6, header):where(:has(+ :is(h1, h2))) {
+				/* Distribute empty space between before headings and after last child */
+				margin-bottom: auto;
 			}
 		}
 	}
