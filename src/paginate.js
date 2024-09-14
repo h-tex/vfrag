@@ -67,6 +67,7 @@ export default async function paginate (container, options = {}) {
 			pendingPages.pop();
 			info.pages--;
 			totals.pages--;
+			break;
 		}
 		else if (consumed.nodes.length === 0) {
 			console.warn("Cannot paginate", container, info.pages > 0 ? ` further (${ info.pages } pages done, ~${ info.pagesLeft } left)` : `(~${ info.pagesLeft } pages left)`);
