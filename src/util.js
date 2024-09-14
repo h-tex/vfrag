@@ -80,7 +80,17 @@ export function affectsLayout (node) {
 	}
 
 	if (node.nodeType === Node.TEXT_NODE) {
-		return node.textContent.trim() !== "";
+		let text = node.textContent;
+
+		if (text === "") {
+			return false;
+		}
+		else if (text.trim() === "") {
+			// Whitespace-only text node
+			return getStyle(node.parentNode)?.white_space_collapse === "preserve";
+		}
+
+		return true;
 	}
 
 	let style = getStyle(node);
