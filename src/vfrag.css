@@ -171,6 +171,10 @@ figcaption:where(:last-child) {
 				/* Distribute empty space between before headings and after last child */
 				margin-bottom: auto;
 			}
+
+			.footnote:nth-child(1 of .footnote) {
+				margin-block: auto 0;
+			}
 		}
 	}
 }
