@@ -3,7 +3,7 @@ const styles = new WeakMap();
 const categoricalProperties = [
 	"position", "display", "float", "box-sizing",
 	"page-break-before", "page-break-inside", "page-break-after",
-	"text-wrap",
+	"text-wrap", "white-space-collapse",
 	"--float",
 ];
 
