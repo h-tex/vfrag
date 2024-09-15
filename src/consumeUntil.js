@@ -111,14 +111,6 @@ export default async function consumeUntil (target_content_height, container, op
 				// Convert to weak node
 				nodes.weak[nodes.length - 1] = true;
 			}
-
-			let remaining_height = target_content_height - nodes.height;
-
-			if (remaining_height < lh) {
-				// We've reached the target height, no need to process further
-				breaker = "full";
-				break;
-			}
 		}
 		else if (util.isFragmentable(child, options)) {
 			if (child.nodeType === Node.TEXT_NODE) {
