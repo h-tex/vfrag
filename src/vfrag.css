@@ -56,6 +56,13 @@ figcaption:where(:last-child) {
 	counter-increment: page;
 	counter-reset: page var(--page-number);
 
+	:where(&) {
+		@media screen {
+			/* Default styles with 0 specificity */
+			margin: 1em auto;
+		}
+	}
+
 	& + & {
 		page-break-before: always;
 	}
