@@ -1,4 +1,4 @@
-<h1><img src="logo.svg" style="height: 100px;"> vfrag</h1>
+<h1><img src="logo.svg" height="100"> vfrag</h1>
 
 Paginate a document by breaking one or more containers vertically into multiple fragments.
 This is a bare-bones DIY alternative to [Paged.js](https://pagedjs.org/).
