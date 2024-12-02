@@ -133,7 +133,7 @@ export default async function paginate (container, options = {}) {
 
 				let bottomFloated = [];
 				let index = -1;
-				while (index = consumed.nodes.findIndex(node => node.style?.getPropertyValue("--float") === "bottom"), index >= 0) {
+				while (index = consumed.nodes.findIndex(node => util.getStyle(node)?.__float === "bottom"), index >= 0) {
 					bottomFloated.push(...consumed.nodes.splice(index, 1));
 				}
 
