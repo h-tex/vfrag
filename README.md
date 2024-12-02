@@ -118,6 +118,23 @@ as it’s a pretty fast operation (processing ~2K links takes about 16 ms on my 
 
 Use `--float: bottom` to float an element to the bottom of the page.
 
+### Running headers, footers, page numbers
+
+Use the `running` option to customize or disable running headers and footers.
+The default value is:
+
+```js
+running: {
+	headers: {
+		maxLevels: 2,
+		separator: "&raquo;",
+	},
+	pageNumbers: true
+}
+```
+
+Set `running: false` to disable all.
+
 ## Configuration
 
 You can also optionally specify options as a second argument of any main function (`paginate()`, `paginateAll()`, `consumeUntil()`).
@@ -138,6 +155,7 @@ The available options are:
 | `startAt` | `number` | `1` | The index of the first page to start at. |
 | `renderEvery` | `number` | `20` | If greater than 0, render incremental results every `renderEvery` pages within a section. |
 | `askEvery` | `number` | `200` | If greater than 0, will ask the user every `askEvery` pages if they want to continue. |
+| `running` | `boolean` or `object` | See above | Whether to generate running headers and page numbers. Set to `false` to disable all.
 
 ### `consumeUntil()` and `paginate()` and `paginateAll()`
 
