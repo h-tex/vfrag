@@ -1,6 +1,6 @@
 {
   "name": "vfrag",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Paginate a document by breaking one or more containers vertically into multiple fragments. ",
   "main": "src/index.js",
   "scripts": {
