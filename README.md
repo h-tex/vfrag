@@ -73,6 +73,13 @@ but they can never be shifted to another section or past another shiftable
 
 ## Usage
 
+First, include the stylesheet in `src/vfrag.css` which includes a number of print-friendly utilities:
+
+```css
+@import url("node_modules/vfrag/src/vfrag.css");
+```
+
+Now, the JS.
 Assuming your containers to be paginated have a class of `.section`:
 
 ```js
@@ -105,6 +112,12 @@ paginateAll(/* … */).then(computeTargets);
 You can optionally specify a `root` element for `computeTargets()`, but it’s not worth it for performance,
 as it’s a pretty fast operation (processing ~2K links takes about 16 ms on my 2021 MBP).
 
+## Styling
+
+### Page floats
+
+Use `--float: bottom` to float an element to the bottom of the page.
+
 ## Configuration
 
 You can also optionally specify options as a second argument of any main function (`paginate()`, `paginateAll()`, `consumeUntil()`).
@@ -130,7 +143,7 @@ The available options are:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `shiftables` | `string` | `"figure:not(unshiftable)"` | Children that are _allowed_ to be shifted down, after some of their siblings to the next page to minimize empty space at the bottom of pages. Shiftables do not shift in a way that would move them to another section, or after other shiftables. |
+| `shiftables` | `string` | `"figure:not(.unshiftable)"` | Children that are _allowed_ to be shifted down, after some of their siblings to the next page to minimize empty space at the bottom of pages. Shiftables do not shift in a way that would move them to another section, or after other shiftables. |
 | `debug` | `boolean` | `false` | If true will output elements with `class=placeholder` that can be rendered to show empty space on each page. |
 | `verbose` | `boolean` | `false` | If true, will output additional info messages to the console. Note that this may slow things down a fair bit. |
 
