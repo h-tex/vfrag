@@ -14,6 +14,16 @@
     "fragmentation"
   ],
   "author": "Lea Verou",
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://github.com/sponsors/LeaVerou"
+    },
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/leaverou"
+    }
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
